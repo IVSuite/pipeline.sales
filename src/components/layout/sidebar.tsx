@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useCurrentUser } from "@/hooks/use-current-user";
+import { BrandMark } from "@/components/shared/brand-mark";
 
 const NAV_ITEMS = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -45,9 +46,8 @@ export function Sidebar({ mobileOpen, onClose }: { mobileOpen: boolean; onClose:
         )}
       >
         <div className="flex h-16 items-center justify-between px-5">
-          <Link href="/dashboard" className="flex items-center gap-2 font-semibold text-foreground">
-            <KanbanSquare className="h-5 w-5 text-primary" />
-            Pipeline CRM
+          <Link href="/dashboard">
+            <BrandMark layout="inline" size="sm" />
           </Link>
           <button className="lg:hidden" onClick={onClose} aria-label="Close menu">
             <X className="h-5 w-5" />

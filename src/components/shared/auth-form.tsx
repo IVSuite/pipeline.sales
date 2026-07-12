@@ -7,10 +7,10 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
-import { KanbanSquare } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input, Label, FieldError, Select } from "@/components/ui/input";
+import { BrandMark, BrandDivider } from "@/components/shared/brand-mark";
 
 const loginSchema = z.object({
   email: z.string().email("Enter a valid email"),
@@ -163,12 +163,11 @@ function AuthCard({
   children: React.ReactNode;
 }) {
   return (
-    <div className="w-full max-w-sm animate-fade-in rounded-xl border border-border bg-surface p-6 shadow-sm">
+    <div className="w-full max-w-sm animate-fade-in rounded-lg border border-border bg-surface p-8 shadow-sm">
       <div className="mb-6 flex flex-col items-center text-center">
-        <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-          <KanbanSquare className="h-5 w-5" />
-        </div>
-        <h1 className="text-lg font-semibold text-foreground">{title}</h1>
+        <BrandMark layout="stacked" size="lg" />
+        <BrandDivider className="mt-4 mb-1" />
+        <h1 className="mt-3 text-base font-semibold text-foreground">{title}</h1>
         <p className="text-sm text-muted-foreground">{subtitle}</p>
       </div>
       {children}

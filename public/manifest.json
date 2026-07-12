@@ -1,12 +1,12 @@
 {
-  "name": "Pipeline CRM",
-  "short_name": "Pipeline CRM",
-  "description": "Cloud-based sales pipeline CRM",
+  "name": "IV — Sales Pipeline",
+  "short_name": "IV Pipeline",
+  "description": "4th Generation Craft, Powered by Industry 4.0 — Sales Pipeline CRM",
   "start_url": "/dashboard",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#f8fafc",
-  "theme_color": "#4f46e5",
+  "background_color": "#faf9f7",
+  "theme_color": "#1a1a18",
   "orientation": "any",
   "icons": [
     { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },

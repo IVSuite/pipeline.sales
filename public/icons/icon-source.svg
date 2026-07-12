@@ -1,7 +1,9 @@
 <svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
-  <rect width="512" height="512" rx="112" fill="#4f46e5"/>
-  <rect x="128" y="140" width="256" height="232" rx="24" fill="none" stroke="#ffffff" stroke-width="22"/>
-  <rect x="168" y="180" width="42" height="90" rx="10" fill="#ffffff"/>
-  <rect x="235" y="180" width="42" height="150" rx="10" fill="#ffffff"/>
-  <rect x="302" y="180" width="42" height="60" rx="10" fill="#ffffff"/>
+  <rect width="512" height="512" rx="56" fill="#1a1a18"/>
+  <!-- I -->
+  <rect x="150" y="152" width="46" height="208" fill="#faf9f7"/>
+  <rect x="116" y="152" width="114" height="24" fill="#faf9f7"/>
+  <rect x="116" y="336" width="114" height="24" fill="#faf9f7"/>
+  <!-- V -->
+  <polyline points="266,152 336,362 406,152" fill="none" stroke="#faf9f7" stroke-width="44" stroke-linecap="square" stroke-linejoin="miter"/>
 </svg>

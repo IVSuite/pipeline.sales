@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
 
@@ -13,9 +13,14 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const displaySerif = Playfair_Display({
+  variable: "--font-display-serif",
+  subsets: ["latin"],
+});
+
 export const metadata: Metadata = {
-  title: "Pipeline CRM",
-  description: "Cloud-based sales pipeline CRM",
+  title: "IV — Sales Pipeline",
+  description: "4th Generation Craft, Powered by Industry 4.0 — Sales Pipeline CRM",
   manifest: "/manifest.json",
   icons: {
     icon: "/icons/icon-192.png",
@@ -24,12 +29,12 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Pipeline CRM",
+    title: "IV Sales Pipeline",
   },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#4f46e5",
+  themeColor: "#1a1a18",
 };
 
 export default function RootLayout({
@@ -40,7 +45,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${displaySerif.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col bg-background text-foreground">

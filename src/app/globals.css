@@ -3,27 +3,27 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --background: #f8fafc;
+  --background: #faf9f7;
   --surface: #ffffff;
-  --surface-muted: #f1f5f9;
-  --foreground: #0f172a;
-  --muted-foreground: #64748b;
-  --border: #e2e8f0;
-  --primary: #4f46e5;
-  --primary-foreground: #ffffff;
-  --ring: #6366f1;
+  --surface-muted: #f2f0eb;
+  --foreground: #1a1a18;
+  --muted-foreground: #79746c;
+  --border: #e6e2da;
+  --primary: #1a1a18;
+  --primary-foreground: #faf9f7;
+  --ring: #1a1a18;
 }
 
 .dark {
-  --background: #0b1120;
-  --surface: #111827;
-  --surface-muted: #1a2233;
-  --foreground: #e5e7eb;
-  --muted-foreground: #94a3b8;
-  --border: #1f2937;
-  --primary: #6366f1;
-  --primary-foreground: #ffffff;
-  --ring: #818cf8;
+  --background: #0c0c0b;
+  --surface: #171715;
+  --surface-muted: #201f1c;
+  --foreground: #f2f0eb;
+  --muted-foreground: #a19a8e;
+  --border: #2b2a26;
+  --primary: #f2f0eb;
+  --primary-foreground: #171715;
+  --ring: #f2f0eb;
 }
 
 @theme inline {
@@ -38,6 +38,7 @@
   --color-ring: var(--ring);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-serif: var(--font-display-serif);
 }
 
 body {
