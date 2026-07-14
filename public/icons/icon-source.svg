@@ -1,9 +1,13 @@
 <svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
   <rect width="512" height="512" rx="56" fill="#1a1a18"/>
-  <!-- I -->
-  <rect x="150" y="152" width="46" height="208" fill="#faf9f7"/>
-  <rect x="116" y="152" width="114" height="24" fill="#faf9f7"/>
-  <rect x="116" y="336" width="114" height="24" fill="#faf9f7"/>
-  <!-- V -->
-  <polyline points="266,152 336,362 406,152" fill="none" stroke="#faf9f7" stroke-width="44" stroke-linecap="square" stroke-linejoin="miter"/>
+  <!-- I : thick stem, thin flared serifs (Didone) -->
+  <rect x="142" y="150" width="46" height="212" fill="#faf9f7"/>
+  <rect x="112" y="150" width="106" height="12" fill="#faf9f7"/>
+  <rect x="112" y="350" width="106" height="12" fill="#faf9f7"/>
+  <!-- V : thick left stroke, hairline right stroke -->
+  <polygon points="240,150 288,150 344,354 320,362" fill="#faf9f7"/>
+  <polygon points="404,150 420,150 344,362 328,362" fill="#faf9f7"/>
+  <!-- V top serifs -->
+  <rect x="226" y="150" width="76" height="12" fill="#faf9f7"/>
+  <rect x="390" y="150" width="46" height="12" fill="#faf9f7"/>
 </svg>

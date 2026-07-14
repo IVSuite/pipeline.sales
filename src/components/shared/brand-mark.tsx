@@ -31,6 +31,11 @@ export function BrandMark({
       >
         Sales Pipeline
       </span>
+      {layout === "stacked" && (
+        <span className="mt-2 text-[9px] uppercase tracking-[0.18em] text-muted-foreground/80">
+          4th Generation Craft, Powered by Industry 4.0
+        </span>
+      )}
     </div>
   );
 }

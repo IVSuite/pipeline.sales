@@ -2,11 +2,12 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Building2, DollarSign, CalendarClock, Pencil } from "lucide-react";
+import { ArrowLeft, Building2, DollarSign, CalendarClock, Pencil, Trash2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ConfirmDialog } from "@/components/ui/modal";
 import { DealForm } from "./deal-form";
 import { EntityTimeline } from "@/components/shared/entity-timeline";
 import { useResourceOne, useResourceMutations } from "@/hooks/use-resource";
@@ -18,8 +19,9 @@ import type { DealInput } from "@/lib/validation/schemas";
 export function DealDetailClient({ id }: { id: string }) {
   const router = useRouter();
   const [formOpen, setFormOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
   const { data: deal, isLoading } = useResourceOne<DealWithRelations>("deals", id);
-  const { update } = useResourceMutations("deals");
+  const { update, remove } = useResourceMutations("deals");
 
   if (isLoading || !deal) {
     return (
@@ -48,9 +50,19 @@ export function DealDetailClient({ id }: { id: string }) {
             <Badge tone="info">{stageLabel}</Badge>
           </div>
         </div>
-        <Button variant="outline" size="sm" onClick={() => setFormOpen(true)}>
-          <Pencil className="h-4 w-4" /> Edit
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={() => setFormOpen(true)}>
+            <Pencil className="h-4 w-4" /> Edit
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="border-red-300 text-red-600 hover:bg-red-50 dark:border-red-900 dark:hover:bg-red-950"
+            onClick={() => setDeleteOpen(true)}
+          >
+            <Trash2 className="h-4 w-4" /> Delete
+          </Button>
+        </div>
       </div>
 
       <Card>
@@ -73,6 +85,22 @@ export function DealDetailClient({ id }: { id: string }) {
         submitting={update.isPending}
         onSubmit={(values: DealInput) =>
           update.mutate({ id: deal.id, body: values }, { onSuccess: () => setFormOpen(false) })
+        }
+      />
+
+      <ConfirmDialog
+        open={deleteOpen}
+        onClose={() => setDeleteOpen(false)}
+        title="Delete deal"
+        description={`Are you sure you want to delete "${deal.title}"? This cannot be undone.`}
+        loading={remove.isPending}
+        onConfirm={() =>
+          remove.mutate(deal.id, {
+            onSuccess: () => {
+              setDeleteOpen(false);
+              router.push("/deals");
+            },
+          })
         }
       />
     </div>
