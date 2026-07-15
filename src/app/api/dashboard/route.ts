@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireUser, errorResponse } from "@/lib/rbac";
+import { STAGE_WIN_PROBABILITY, type DealStage } from "@/types/database";
 
 export async function GET() {
   try {
@@ -7,7 +8,7 @@ export async function GET() {
 
     const [
       { count: totalLeads },
-      { count: activeDeals },
+      openDealsData,
       { count: wonDeals },
       { count: lostDeals },
       wonDealsData,
@@ -15,10 +16,7 @@ export async function GET() {
       upcomingTasks,
     ] = await Promise.all([
       supabase.from("leads").select("*", { count: "exact", head: true }),
-      supabase
-        .from("deals")
-        .select("*", { count: "exact", head: true })
-        .not("stage", "in", "(closed_won,closed_lost)"),
+      supabase.from("deals").select("value, stage").not("stage", "in", "(closed_won,closed_lost)"),
       supabase.from("deals").select("*", { count: "exact", head: true }).eq("stage", "closed_won"),
       supabase.from("deals").select("*", { count: "exact", head: true }).eq("stage", "closed_lost"),
       supabase.from("deals").select("value, created_at").eq("stage", "closed_won"),
@@ -35,15 +33,21 @@ export async function GET() {
         .limit(8),
     ]);
 
+    const openDeals = openDealsData.data ?? [];
     const revenue = (wonDealsData.data ?? []).reduce((sum, d) => sum + Number(d.value), 0);
+    const weightedValue = openDeals.reduce(
+      (sum, d) => sum + Number(d.value) * (STAGE_WIN_PROBABILITY[d.stage as DealStage] ?? 0),
+      0
+    );
 
     const monthlySales = buildMonthlySeries(wonDealsData.data ?? []);
 
     return NextResponse.json({
       totalLeads: totalLeads ?? 0,
-      activeDeals: activeDeals ?? 0,
+      activeDeals: openDeals.length,
       wonDeals: wonDeals ?? 0,
       lostDeals: lostDeals ?? 0,
+      weightedValue,
       revenue,
       monthlySales,
       recentActivities: recentActivities.data ?? [],

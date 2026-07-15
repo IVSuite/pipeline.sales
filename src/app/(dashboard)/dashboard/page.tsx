@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { Users, KanbanSquare, Trophy, XCircle, DollarSign } from "lucide-react";
+import { Users, KanbanSquare, Trophy, XCircle, DollarSign, Scale } from "lucide-react";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { MonthlySalesChart } from "@/components/dashboard/monthly-sales-chart";
 import { RecentActivities } from "@/components/dashboard/recent-activities";
@@ -16,6 +16,7 @@ interface DashboardData {
   activeDeals: number;
   wonDeals: number;
   lostDeals: number;
+  weightedValue: number;
   revenue: number;
   monthlySales: { label: string; value: number }[];
   recentActivities: ActivityWithCreator[];
@@ -36,15 +37,16 @@ export default function DashboardPage() {
         <p className="text-sm text-muted-foreground">Here&apos;s what&apos;s happening with your pipeline today.</p>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         {isLoading || !data ? (
-          Array.from({ length: 5 }).map((_, i) => <CardSkeleton key={i} />)
+          Array.from({ length: 6 }).map((_, i) => <CardSkeleton key={i} />)
         ) : (
           <>
             <StatCard label="Total Leads" value={String(data.totalLeads)} icon={Users} />
             <StatCard label="Active Deals" value={String(data.activeDeals)} icon={KanbanSquare} />
             <StatCard label="Won Deals" value={String(data.wonDeals)} icon={Trophy} tone="success" />
             <StatCard label="Lost Deals" value={String(data.lostDeals)} icon={XCircle} tone="danger" />
+            <StatCard label="Weighted Value" value={formatCurrency(data.weightedValue)} icon={Scale} />
             <StatCard label="Revenue" value={formatCurrency(data.revenue)} icon={DollarSign} tone="success" />
           </>
         )}

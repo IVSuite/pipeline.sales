@@ -156,6 +156,18 @@ export const DEAL_STAGES: { value: DealStage; label: string }[] = [
   { value: "closed_lost", label: "Closed Lost" },
 ];
 
+// Rough win-probability per stage, used to compute the dashboard's "Weighted
+// Value" forecast (sum of each open deal's value × its stage probability).
+export const STAGE_WIN_PROBABILITY: Record<DealStage, number> = {
+  new_lead: 0.1,
+  contacted: 0.2,
+  qualified: 0.4,
+  proposal_sent: 0.6,
+  negotiation: 0.8,
+  closed_won: 1,
+  closed_lost: 0,
+};
+
 export const PRIORITY_LEVELS: PriorityLevel[] = ["low", "medium", "high", "urgent"];
 export const LEAD_STATUSES: LeadStatus[] = ["new", "contacted", "qualified", "unqualified", "converted"];
 export const TASK_STATUSES: TaskStatus[] = ["pending", "in_progress", "completed", "overdue"];
