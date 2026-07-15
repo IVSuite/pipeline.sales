@@ -73,7 +73,7 @@ export function DealForm({
             </Select>
           </div>
           <div>
-            <Label htmlFor="value">Value ($)</Label>
+            <Label htmlFor="value">Value (LE)</Label>
             <Input id="value" type="number" min={0} step="0.01" {...register("value")} />
           </div>
         </div>

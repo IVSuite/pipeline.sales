@@ -56,6 +56,9 @@ export async function POST(request: NextRequest) {
       .from("leads")
       .insert({
         ...nullifyEmptyKeys(parsed.data, ["company_id"]),
+        deal_value: parsed.data.deal_value ?? 0,
+        status: parsed.data.status ?? "new",
+        priority: parsed.data.priority ?? "medium",
         email: parsed.data.email || null,
         assigned_to: parsed.data.assigned_to || profile.id,
         created_by: profile.id,

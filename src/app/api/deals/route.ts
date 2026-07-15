@@ -58,6 +58,8 @@ export async function POST(request: NextRequest) {
       .from("deals")
       .insert({
         ...nullifyEmptyKeys(parsed.data, ["lead_id", "customer_id", "company_id"]),
+        value: parsed.data.value ?? 0,
+        stage: parsed.data.stage ?? "new_lead",
         expected_close_date: parsed.data.expected_close_date || null,
         owner_id: parsed.data.owner_id || profile.id,
         created_by: profile.id,

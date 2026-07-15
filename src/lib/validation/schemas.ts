@@ -25,9 +25,13 @@ export const leadSchema = z.object({
   position: z.string().max(120).optional().or(z.literal("")),
   lead_source: z.string().max(120).optional().or(z.literal("")),
   assigned_to: optionalUuid,
-  deal_value: z.coerce.number().min(0).default(0),
-  status: z.enum(["new", "contacted", "qualified", "unqualified", "converted"]).default("new"),
-  priority: z.enum(["low", "medium", "high", "urgent"]).default("medium"),
+  // No `.default()` on these three — a schema-level default survives `.partial()`
+  // in zod and fires whenever the field is merely omitted from a PATCH body,
+  // silently resetting it. Defaults are applied explicitly in the POST handler
+  // instead (see src/app/api/leads/route.ts).
+  deal_value: z.coerce.number().min(0).optional(),
+  status: z.enum(["new", "contacted", "qualified", "unqualified", "converted"]).optional(),
+  priority: z.enum(["low", "medium", "high", "urgent"]).optional(),
   notes: z.string().max(5000).optional().or(z.literal("")),
 });
 export type LeadInput = z.infer<typeof leadSchema>;
@@ -46,7 +50,10 @@ export const dealSchema = z.object({
   lead_id: optionalUuid,
   customer_id: optionalUuid,
   company_id: optionalUuid,
-  value: z.coerce.number().min(0).default(0),
+  // No `.default()` here — see the comment on leadSchema above for why: it would
+  // fire on every `.partial()` PATCH that omits the field (e.g. a drag-and-drop
+  // stage-only update), resetting it. Defaults live in the POST handler instead.
+  value: z.coerce.number().min(0).optional(),
   stage: z
     .enum([
       "new_lead",
@@ -57,7 +64,7 @@ export const dealSchema = z.object({
       "closed_won",
       "closed_lost",
     ])
-    .default("new_lead"),
+    .optional(),
   owner_id: optionalUuid,
   expected_close_date: z.string().optional().or(z.literal("")),
 });
@@ -79,8 +86,9 @@ export const taskSchema = z.object({
   title: z.string().min(1, "Title is required").max(200),
   description: z.string().max(5000).optional().or(z.literal("")),
   due_date: z.string().optional().or(z.literal("")),
-  priority: z.enum(["low", "medium", "high", "urgent"]).default("medium"),
-  status: z.enum(["pending", "in_progress", "completed", "overdue"]).default("pending"),
+  // No `.default()` — same reasoning as dealSchema/leadSchema above.
+  priority: z.enum(["low", "medium", "high", "urgent"]).optional(),
+  status: z.enum(["pending", "in_progress", "completed", "overdue"]).optional(),
   assigned_to: optionalUuid,
   related_lead_id: optionalUuid,
   related_deal_id: optionalUuid,

@@ -51,6 +51,8 @@ export async function POST(request: NextRequest) {
       .from("tasks")
       .insert({
         ...nullifyEmptyKeys(parsed.data, ["related_lead_id", "related_deal_id"]),
+        priority: parsed.data.priority ?? "medium",
+        status: parsed.data.status ?? "pending",
         due_date: parsed.data.due_date || null,
         reminder_at: parsed.data.reminder_at || null,
         assigned_to: parsed.data.assigned_to || profile.id,

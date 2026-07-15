@@ -6,11 +6,8 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function formatCurrency(value: number) {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 0,
-  }).format(value);
+  const amount = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(value);
+  return `${amount} LE`;
 }
 
 export function formatDate(value: string | null | undefined) {

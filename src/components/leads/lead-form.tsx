@@ -109,7 +109,7 @@ export function LeadForm({
             </Select>
           </div>
           <div>
-            <Label htmlFor="deal_value">Deal value ($)</Label>
+            <Label htmlFor="deal_value">Deal value (LE)</Label>
             <Input id="deal_value" type="number" min={0} step="0.01" {...register("deal_value")} />
           </div>
         </div>
