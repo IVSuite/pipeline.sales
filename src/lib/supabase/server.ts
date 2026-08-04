@@ -13,6 +13,8 @@ export async function createClient() {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
+      // CRM data lives in the `crm` schema of the shared IV Operation project.
+      db: { schema: "crm" },
       cookies: {
         getAll() {
           return cookieStore.getAll();
