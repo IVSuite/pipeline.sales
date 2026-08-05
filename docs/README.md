@@ -2,7 +2,7 @@
 
 **Version:** v0.1 (July 2026)  
 **Prepared for:** IV management and internal build team  
-**Prepared by:** Hossary
+**Prepared by:** Hossary — m@hossaryai.com · hossary@mypend.app
 
 ---
 
