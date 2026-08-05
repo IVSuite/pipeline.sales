@@ -1,7 +1,7 @@
 # IV AI Workflow Platform — Blueprint (v0.1)
 
 **Prepared for:** IV management and internal build team  
-**Prepared by:** Hossary  
+**Prepared by:** Hossary — m@hossaryai.com · hossary@mypend.app  
 **Version / date:** v0.1 — July 2026  
 **Classification:** Internal
 
