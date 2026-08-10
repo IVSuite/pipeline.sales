@@ -1,32 +1,27 @@
 # Documentation index
 
-**Version:** v0.1 (July 2026)  
+**Version:** v0.1 (August 2026)  
 **Prepared for:** IV management and internal build team  
 **Prepared by:** Hossary — m@hossaryai.com · hossary@mypend.app
 
+**Dual approach:** simple **app + database** first; **AI / blueprint** on top where the app cannot scale or handle messy input.
+
 ---
 
-## Platform blueprint (unified system)
+## Platform blueprint
 
 | Read first | Why |
 |------------|-----|
-| [What's next](./WHATS-NEXT.md) | Problem, direction, immediate steps for the team |
-| [Blueprint (full)](./BLUEPRINT.md) | Complete architecture and implementation guide |
+| [**Dual approach**](./00-dual-approach.md) | App vs AI — what to build where |
+| [What's next](./WHATS-NEXT.md) | Immediate steps |
+| [Blueprint (full)](./BLUEPRINT.md) | AI layer, architecture, governance |
 
-| # | Document | Contents |
-|---|----------|----------|
-| 1 | [Vision & principles](./01-vision-and-principles.md) | Six principles |
-| 2 | [Current state & gap](./02-current-state-and-gap.md) | CRM vs quotation app |
-| 3 | [Architecture](./03-architecture.md) | Six layers |
-| 4 | [Data model](./04-data-model.md) | Order book |
-| 5 | [AI workforce](./05-ai-workforce.md) | Desks |
-| 6 | [Reasoning & tools](./06-reasoning-and-tools.md) | MCP, harness |
-| 7 | [Governance](./07-governance.md) | Extract → confirm |
-| 8 | [Milestones M0–M5](./08-milestones.md) | Acceptance criteria |
-| 9 | [Operating model & risks](./09-operating-model-and-risks.md) | Roles, risks |
-| 10 | [Glossary](./glossary.md) | Terms |
+| # | Document |
+|---|----------|
+| 0 | [Dual approach](./00-dual-approach.md) |
+| 1–10 | [Vision](./01-vision-and-principles.md) · [Gap](./02-current-state-and-gap.md) · [Architecture](./03-architecture.md) · [Data](./04-data-model.md) · [Desks](./05-ai-workforce.md) · [Tools/MCP](./06-reasoning-and-tools.md) · [Governance](./07-governance.md) · [Milestones](./08-milestones.md) · [Ops](./09-operating-model-and-risks.md) · [Glossary](./glossary.md) |
 
-**This repo** is the CRM shell — target base for the merged platform. Quotation app: [IV-quotation-app](https://github.com/ahmedmohseniv/IV-quotation-app).
+**This repo** = Track A CRM shell. Quotation app: [IV-quotation-app](https://github.com/hossaryp/IV-quotation-app).
 
 ---
 
@@ -37,3 +32,9 @@
 | [INSTALLATION.md](./INSTALLATION.md) | Local setup, Supabase, seed |
 | [DEPLOYMENT.md](./DEPLOYMENT.md) | Vercel + Supabase deploy |
 | [API.md](./API.md) | REST route handlers |
+
+---
+
+## Core thesis
+
+> **App on the database first; AI where forms aren't enough or the team needs to scale.**

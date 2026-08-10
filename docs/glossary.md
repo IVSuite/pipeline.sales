@@ -4,7 +4,10 @@ Plain-language definitions for the IV AI workflow platform.
 
 | Term | Plain meaning |
 |------|----------------|
-| **LLM (language model)** | A text engine: send it words, it sends words back. No memory of its own; cannot act without tools; can be confidently wrong. |
+| **Track A** | Simple app — forms, screens, API, Supabase; default for structured work |
+| **Track B** | AI overlay — LLM, MCP, extract→confirm; when app alone isn't enough or needs scale |
+| **Dual approach** | Both tracks on one order book; app first, AI on top |
+| **LLM (language model)** | Text engine; use in Track B, not as replacement for CRM screens |
 | **Harness** | Everything built around the model — data, instructions, tools, skills. Where all company-specific intelligence lives. |
 | **System prompt** | The written instruction document that defines an assistant's identity, rules, and behavior. |
 | **Tool** | A small, single-purpose, permission-checked script the model is allowed to call. The model asks; the tool decides. |

@@ -1,110 +1,112 @@
-# Reference architecture — six layers
+# Reference architecture — app + AI layers
 
-The platform is organized in **six layers**. Requests flow **down** (person → assistant → tool → database). Events flow **up** (payment confirmed → notifications → manufacturing order).
+The system has **two tracks** on **one stack**. See [00-dual-approach.md](./00-dual-approach.md).
 
-Each layer can evolve independently because interfaces between them are standard (especially **MCP** for tools).
+```text
+TRACK A — App (primary)          TRACK B — AI overlay (optional)
+CRM · quotes · forms · PDF       Chat · MCP · extract→confirm · skills
+        │                                  │
+        └──────────►  L2 Data  ◄───────────┘
+                    (one order book)
+```
+
+The **six layers** below describe the **full platform** including Track B. **Track A** uses **L1, L2, L6** directly (governance, database, app UI). **L3–L5** are added when the app alone is not enough.
 
 ---
 
 ## Layer stack
 
-| Layer | Name | What it contains |
-|-------|------|------------------|
-| **L6** | **Experience** | Chat-first interface for the team; structured forms for repetitive entry; evidence attachments (images, documents). Chat is the **main door**, not the only door. |
-| **L5** | **Orchestration** | Receives every request, identifies intent, routes to the right specialist assistant (each runs under its own system prompt). |
-| **L4** | **Reasoning** | Language models + skill library. Shaped by instructions and skills, **never by training**. Models swappable; harness persists. |
-| **L3** | **Tools & automation** | Small, single-purpose, permission-checked scripts via **MCP**. Scheduled and event-triggered jobs run **after** human approval. |
-| **L2** | **Data** | Order book (Postgres/Supabase), file store for evidence, reference tables (price list, discounts, material prices, BOM formulas). |
-| **L1** | **Governance** | Identity and roles, approval gates, append-only audit log. |
+| Layer | Name | Track A (app) | Track B (AI) |
+|-------|------|---------------|--------------|
+| **L6** | **Experience** | **Primary:** CRM UI, quotation forms, Kanban, payment screens | Optional: chat as second door to same APIs |
+| **L5** | **Orchestration** | — | Route chat to desks (M5, if needed) |
+| **L4** | **Reasoning** | — | LLM + skills for messy input / assist |
+| **L3** | **Tools & automation** | API routes, cron, server PDF | MCP tools; extract jobs; event scripts after confirm |
+| **L2** | **Data** | **Shared:** order book, Storage, price list, catalog | Same tables — AI never gets a separate DB |
+| **L1** | **Governance** | **Shared:** auth, RBAC, gates, audit log | Same gates on tools and API |
 
 ```text
-┌───────────────────────────────────────────── L6 Experience ────┐
-│  Chat UI · CRM UI (pipeline.sales) · Forms · Attachments       │
-└───────────────────────────────┬────────────────────────────────┘
+┌──────────────────────── L6 — App UI (Track A) ────────────────────────┐
+│  pipeline.sales · quotation module · forms · Kanban · PDF export      │
+└───────────────────────────────┬───────────────────────────────────────┘
+                                │  optional
+┌──────────────────────── L6b — Chat (Track B) ─────────────────────────┐
+│  MCP / assistant ──► same API routes as forms                         │
+└───────────────────────────────┬───────────────────────────────────────┘
                                 ▼
-┌───────────────────────────────────────────── L5 Orchestration ─┐
-│  Route intent → Sales / Finance / Ops / Bridge desk            │
-└───────────────────────────────┬────────────────────────────────┘
+┌──────────────────────── L3 — APIs & jobs ─────────────────────────────┐
+│  /api/leads · /api/deals · extract_queue · record_payment · cron      │
+└───────────────────────────────┬───────────────────────────────────────┘
                                 ▼
-┌───────────────────────────────────────────── L4 Reasoning ─────┐
-│  LLM + instructions + skills                                   │
-└───────────────────────────────┬────────────────────────────────┘
+┌──────────────────────── L2 — Order book (Supabase) ───────────────────┐
+└───────────────────────────────┬───────────────────────────────────────┘
                                 ▼
-┌───────────────────────────────────────────── L3 Tools ───────────┐
-│  create_lead · draft_quote · record_payment · notify · … (MCP) │
-└───────────────────────────────┬────────────────────────────────┘
-                                ▼
-┌───────────────────────────────────────────── L2 Data ────────────┐
-│  Order book · Storage · Price list · BOM · Material prices       │
-└───────────────────────────────┬────────────────────────────────┘
-                                ▼
-┌───────────────────────────────────────────── L1 Governance ──────┐
-│  Auth · RBAC · Approval gates · Audit log                      │
-└────────────────────────────────────────────────────────────────┘
+┌──────────────────────── L1 — Governance ──────────────────────────────┐
+└───────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## How a request travels (example)
+## Example: lead intake (app vs AI)
 
-1. Moderator types a new lead in chat: name, phone, source.
-2. **Orchestrator** (L5) recognizes intake → routes to **Sales Desk** (L4).
-3. Assistant calls **`create_lead`** tool (L3) with typed fields.
-4. Tool validates phone format, finds existing **client** by phone (L2), assigns to owning rep per dedupe rule.
-5. Tool writes **lead** row; **audit log** records actor + time (L1).
-6. Assistant replies in plain language (L6).
+**Track A — rep uses CRM form:**
 
-No pre-designed screen carried the business rule — the rule lived in an **instruction document** and **tool validation**.
+1. Rep opens Leads → New lead form (L6 app).
+2. POST `/api/leads` validates phone, dedupes, assigns (L3 app API).
+3. Row written to order book (L2); audit log (L1).
 
----
+**Track B — moderator uses chat (optional, same outcome):**
 
-## Mapping current repos to layers
+1. Message in chat (L6).
+2. Assistant calls `create_lead` MCP tool (L3–L4) — **same validation as API**.
+3. Same L2 write and L1 log.
 
-| Layer | Today | Target |
-|-------|-------|--------|
-| L6 | CRM UI + standalone quotation HTML | Unified app: CRM + quote editor + forms |
-| L5 | — | Add when one prompt is insufficient (M5 path) |
-| L4 | — | AI workspace + MCP (M1+) |
-| L3 | Inline JS in quotation.html; CRM API routes | Extract to MCP tools + shared API |
-| L2 | Two Supabase projects | **One** order book |
-| L1 | CRM RLS only | Gates on quote, payment, COGS, delivery |
+**Build order:** ship Track A first. Add Track B when WhatsApp lag hurts adoption.
 
 ---
 
-## Two doors, one database
+## Example: cabinet import (Track B on Track A data)
 
-Forms and chat must call the **same tools**:
+1. Rep uploads PDF in quotation screen (L6 app).
+2. Server **extract** job pre-fills line items (L3 Track B).
+3. Rep **confirms** rows in review UI (L6 app) — extract → confirm.
+4. Confirmed rows saved to `line_items` (L2).
+
+No LLM required for saving — only for extraction step. Simple CSV imports may stay **Track A only**.
+
+---
+
+## Mapping current repos
+
+| Layer | `pipeline.sales` | `IV-quotation-app` |
+|-------|------------------|---------------------|
+| L6 app | CRM shell — **continue** | Quotation UI — **port into CRM** |
+| L3 | API routes — **extend** | Browser import — **move to server extract** |
+| L2 | Migrations base — **merge** | Catalog seed — **one DB** |
+| L1 | RBAC — **extend to quotes/payments** | Embedded keys — **remove** |
+| L4–L5 | — | Add when app + extract queue live |
+
+---
+
+## Event flow (non-AI automation counts as Track A)
+
+Accountant clicks **Confirm payment** in app (L6):
 
 ```text
-   Chat message ──► Orchestrator ──► tool ──┐
-                                            ├──► Order book
-   Lead form (CRM UI) ──► API ──► tool ────┘
+POST /api/payments/confirm
+    ├──► order created
+    ├──► invoice job (cron/API)
+    ├──► notify ops (email/WhatsApp mirror)
+    └──► audit log
 ```
 
-`pipeline.sales` forms already exist for leads/deals. Quotation actions should use the same pattern — not a separate save path in `quotation.html`.
-
----
-
-## Event flow (automation up)
-
-Example: accountant confirms deposit (human gate at L1/L3):
-
-```text
-record_payment (approved)
-    │
-    ├──► quotation → order (status change)
-    ├──► issue_invoice (tool)
-    ├──► create_manufacturing_order (tool)
-    ├──► notify_operations (Bridge desk)
-    └──► audit log entries
-```
-
-Scripts handle repetition **after** the human gate. See [06-reasoning-and-tools.md](./06-reasoning-and-tools.md#automation).
+No LLM in this path — still architecture-compliant.
 
 ---
 
 ## Related
 
-- [AI workforce (desks)](./05-ai-workforce.md)
+- [Dual approach](./00-dual-approach.md)
+- [AI workforce (desks)](./05-ai-workforce.md) — Track B org design
 - [Data model](./04-data-model.md)
 - [Governance](./07-governance.md)

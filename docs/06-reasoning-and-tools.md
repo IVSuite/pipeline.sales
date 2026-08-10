@@ -1,8 +1,16 @@
 # Reasoning, tools, and MCP
 
-A language model alone is a **text engine**: no memory, no ability to act, capable of being confidently wrong.
+**Track B — use when Track A (app + database) is not enough.**
 
-What makes it a reliable worker is the **harness** — everything built around the model. This is where all company-specific intelligence lives.
+See [00-dual-approach.md](./00-dual-approach.md). Do not add LLM/MCP for workflows that a form, API route, and validation already handle reliably.
+
+| Build as app (Track A) | Add AI (Track B) |
+|------------------------|------------------|
+| Create lead, move deal stage | Free-text lead from chat |
+| Payment confirm button | Extract amount from receipt → pre-fill |
+| Quotation line item edit | Cabinet PDF → draft rows → review |
+| Dashboard KPIs | “Why is this deal stuck?” ad hoc Q&A |
+| Cron overdue tasks | Smart follow-up wording (optional) |
 
 ---
 

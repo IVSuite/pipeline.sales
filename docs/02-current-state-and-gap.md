@@ -1,6 +1,13 @@
 # Current state and gap
 
-This page maps **what is in the repo today** to **what the blueprint requires**, so the team knows exactly why isolation must end.
+Maps **what is in the repo today** to the **dual approach**: both apps are **Track A** (simple app + database) assets. The gap is **isolation** (two databases), not missing AI.
+
+→ [00-dual-approach.md](./00-dual-approach.md)
+
+| Repo | Track | Verdict |
+|------|-------|---------|
+| `pipeline.sales` | **A** | **Continue** — CRM shell for merged app |
+| `IV-quotation-app` | **A** (+ **B** on PDF import) | **Continue** — port into CRM; add extract queue later |
 
 ---
 

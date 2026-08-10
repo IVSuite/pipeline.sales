@@ -5,23 +5,26 @@
 **Version / date:** v0.1 — July 2026  
 **Classification:** Internal
 
-An advisory blueprint for building IV's lead-to-delivery workflow as **AI infrastructure** — one order book, a governed tool layer, and an organization of AI assistants — rather than a traditional ERP application.
+An advisory blueprint for IV's lead-to-delivery workflow using a **dual approach**: a **simple app on one database** (CRM + quotations) for structured work, plus an **AI layer on top** only where the app cannot scale or handle messy input efficiently.
 
 ---
 
 ## 1. Executive summary
 
-The team currently runs its pipeline — lead intake, assignment, follow-up, quotation, payment confirmation, production handoff, and delivery — on **chats, screenshots, and memory**. The objective is to replace memory with a system while keeping a **chat-style interface** the team already knows.
+The team currently runs its pipeline on **chats, screenshots, memory**, and **two separate apps** (`pipeline.sales` + `IV-quotation-app`). The objective is **one order book** and daily use of a **unified app** — not replacing everything with AI.
 
-**Recommendation:** Do **not** rebuild a traditional ERP. Build AI infrastructure in the pattern used by leading AI organizations:
+### Dual approach
 
-- A single governed database (**the order book**)
-- A library of small, permission-checked **tools**
-- Language-model **assistants** that operate those tools through conversation
+| Track | What | When |
+|-------|------|------|
+| **A — Simple app** | Next.js + Supabase: forms, Kanban, quotation editor, PDF, payment confirm, cron | Structured data, clear rules, team can click through it — **continue and extend** |
+| **B — AI / blueprint** | LLM, MCP tools, extract → confirm, skills, optional chat | Messy documents, free-text intake, cross-record assist, volume that manual entry cannot sustain |
 
-Business rules live in **editable instruction documents**, not only in application code. The system is never “finished” by design — it grows tool by tool and skill by skill, at the pace of real needs, built and maintained by **your own team**.
+**This blueprint document primarily defines Track B** and shared governance. **Track A** is the existing CRM and quotation code — merged onto one database per [00-dual-approach.md](./00-dual-approach.md).
 
-This blueprint defines:
+The team currently runs lead intake through delivery with gaps filled by WhatsApp. Track A removes isolation and adds missing screens. Track B makes selected steps faster — it does **not** replace the app.
+
+This blueprint defines for **Track B and shared rules**:
 
 - Target architecture in **six layers**
 - An **organization of AI assistants** (desks)
@@ -34,15 +37,19 @@ No fixed timelines or budgets are asserted here. Each milestone is defined by **
 
 ### Core thesis
 
-> **Keep the model ordinary; make the harness excellent.**
+> **App on the database first; ordinary model on top where it earns its place.**
 
-All company-specific intelligence lives in the **data**, **instructions**, **tools**, and **skills** built around the model — assets the team owns, edits, and grows.
+Structured work lives in the **app and order book**. Messy or scaling work lives in **instructions, tools, and skills** — same data, optional LLM.
+
+→ Dual approach: [00-dual-approach.md](./00-dual-approach.md)
 
 ---
 
 ## 2. Vision and guiding principles
 
-**Vision:** Infrastructure, not an application. A traditional ERP fixes workflows into screens designed in advance; the company bends to the software. The recommended approach is three permanent assets — **data, tools, and reasoning** — connected through one chat-first interface. When a new need appears, the response is a **new table and a new tool**, not a new multi-month project.
+**Vision:** Two tracks, one order book. Extend the **simple app** (`pipeline.sales` + quotation module) for CRM, quotes, payments, and production screens. Add **AI and automation** only for document extraction, optional chat intake, follow-up intelligence, and cross-record assist — not as a replacement for forms and Kanban.
+
+Do **not** rebuild a traditional ERP. Do **not** rebuild working app features as chat-only agents.
 
 ### Six non-negotiable principles
 
@@ -52,10 +59,10 @@ All company-specific intelligence lives in the **data**, **instructions**, **too
 | 2 | **Humans approve, AI drafts** | No quotation, invoice, manufacturing order, or payment record is finalized by a model alone. A named person confirms; the system logs who and when. |
 | 3 | **Extract, then confirm** | Evidence always attached. System may extract to pre-fill; a **named person confirms** before save or gates. Never auto-finalize from images alone. |
 | 4 | **Permissions per person, not per bot** | Everyone uses the system under their own identity. Every tool checks who is asking before acting. Role-specific AI assistants are experience design; **security lives in the tool layer**. |
-| 5 | **Ordinary model, excellent harness** | No model training or fine-tuning. Company-specific intelligence lives in data, instructions, tools, and skills — assets the team can read and edit. |
-| 6 | **Ship small, save skills** | Every increment goes to the team's hands quickly; every refinement is captured as a reusable **skill**. The skill library becomes the company's executable operating manual. |
+| 5 | **App first; ordinary model when needed** | Database + app UI by default; LLM harness when app alone isn't enough or needs scale |
+| 6 | **Ship small, save what works** | App increments weekly; capture AI refinements as **skills** when Track B repeats |
 
-→ Expanded: [01-vision-and-principles.md](./01-vision-and-principles.md)
+→ Expanded: [01-vision-and-principles.md](./01-vision-and-principles.md) · [00-dual-approach.md](./00-dual-approach.md)
 
 ---
 
