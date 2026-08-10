@@ -21,11 +21,12 @@ The lasting deliverable is a **capability**, not a one-off codebase.
 
 **2. Reframing habit**
 
-When a need appears anywhere in the company, ask:
+When a need appears, ask in order:
 
-> **“What data and what tool would this need?”**
+1. **Can a form + database handle this?** → Track A — build in the app.
+2. **If not, or too slow manually at scale?** → Track B — extract, tool, or optional LLM on top.
 
-Not: “Which app should we buy?”
+Not: “Which app should we buy?” or “Everything through chat.”
 
 When that question is default, the AI culture exists — and the platform scales with the company.
 

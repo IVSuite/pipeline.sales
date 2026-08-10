@@ -85,8 +85,9 @@ Demo accounts (after seeding), password `Password123!` for all:
 
 ### Unified platform blueprint
 
-- **[What's next](docs/WHATS-NEXT.md)** — merge CRM + quotation into one order book
-- **[Full blueprint](docs/BLUEPRINT.md)** — architecture, milestones M0–M5, governance
+- **[Dual approach](docs/00-dual-approach.md)** — app + database first; AI on top
+- **[What's next](docs/WHATS-NEXT.md)** — merge CRM + quotation
+- **[Full blueprint](docs/BLUEPRINT.md)**
 - [Documentation index](docs/README.md)
 
 ### This CRM build
