@@ -57,7 +57,8 @@ supabase/
   migrations/                          SQL schema + RLS policies
   seed.sql                              Demo data (4 users, companies, leads, deals, tasks…)
 docs/
-  API.md, INSTALLATION.md, DEPLOYMENT.md
+  WHATS-NEXT.md, BLUEPRINT.md, …     Platform blueprint (unified system)
+  API.md, INSTALLATION.md, DEPLOYMENT.md   This CRM build
 ```
 
 ## Quick start
@@ -81,6 +82,15 @@ Demo accounts (after seeding), password `Password123!` for all:
 | rep2@demo.com | sales_rep |
 
 ## Docs
+
+### Unified platform blueprint
+
+- **[Dual approach](docs/00-dual-approach.md)** — app + database first; AI on top
+- **[What's next](docs/WHATS-NEXT.md)** — merge CRM + quotation
+- **[Full blueprint](docs/BLUEPRINT.md)**
+- [Documentation index](docs/README.md)
+
+### This CRM build
 
 - [API documentation](docs/API.md)
 - [Installation guide](docs/INSTALLATION.md)
