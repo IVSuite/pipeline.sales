@@ -19,13 +19,31 @@ Milestones split into **Track A (app)** and **Track B (AI)**. **Complete Track A
 | **M2** | **A** | Quotations + PDF inside CRM; linked to deals |
 | **M3** | **A** | Payments, order confirm, invoices — app forms + gates |
 | **M4** | **A** | Production, COGS, delivery — app screens + rules |
-| **M1b** | **B** | Optional: chat/MCP intake → same APIs as forms |
-| **M2b** | **B** | Cabinet/PDF extract → review → confirm into quotes |
-| **M5** | **B** | Orchestration, skills library, model tiering if volume requires |
+| **Pre-B** | **Gate** | Architecture needs + tools inventory documented per Track B feature |
+| **M1b** | **B** | Chat/MCP intake — **after Pre-B** + `create_lead` API |
+| **M2b** | **B** | Cabinet extract — **after Pre-B** + review queue UI |
+| **M5** | **B** | Orchestration — **after Pre-B** for each desk + M0–M4 stable |
 
 ---
 
-## M0 — The data exists (Track A)
+## Pre-B — Architecture & tools (gate before any Track B)
+
+**Not optional.** One Pre-B worksheet per Track B feature → [00b-before-track-b.md](./00b-before-track-b.md)
+
+### Acceptance criteria
+
+- [ ] Track A APIs/screens exist for **confirmed** writes (not just extract)
+- [ ] Architecture needs table filled (data, layers, integrations)
+- [ ] Tools inventory filled — every tool named with inputs, permission, read/write
+- [ ] Review / confirm UI specified (extract → confirm)
+- [ ] 5+ real sample inputs collected (PDFs, messages, etc.)
+- [ ] Go/no-go checklist signed off
+
+### Exit demo
+
+> Team can point to a **tools table** and **architecture sketch** before anyone opens an LLM API key.
+
+---
 
 ### Acceptance criteria
 
@@ -53,8 +71,8 @@ Milestones split into **Track A (app)** and **Track B (AI)**. **Complete Track A
 
 ### Optional M1b (Track B)
 
-- [ ] Chat or MCP can call `create_lead` / `find_client` — **same rows as form**
-- [ ] Only after form path works
+- [ ] Pre-B worksheet complete for chat intake
+- [ ] Chat or MCP calls `create_lead` / `find_client` — **same rows as form**
 
 ### Exit demo
 
@@ -73,8 +91,8 @@ Milestones split into **Track A (app)** and **Track B (AI)**. **Complete Track A
 
 ### Optional M2b (Track B)
 
-- [ ] Upload cabinet PDF → extract → **review queue** → confirm rows
-- [ ] Low-confidence rows flagged; rep never auto-saves without confirm
+- [ ] Pre-B worksheet complete for cabinet PDF import
+- [ ] Upload cabinet PDF → `extract_*` → **review queue** → confirm rows
 
 ### Exit demo
 
@@ -134,6 +152,7 @@ Blueprint / MCP    ──►  Track B overlay — not a replacement for M1–M4 
 | Don't | Why |
 |-------|-----|
 | Block CRM merge waiting for MCP | M1 is app-first |
+| Start Track B without Pre-B doc | No architecture or tools = failed AI |
 | Replace payment form with chat | Track A gates need confirm UI |
 | Auto-finalize extract to payment | Principle 3 |
 | Build orchestrator before forms work | Track B sequence |

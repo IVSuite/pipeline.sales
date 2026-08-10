@@ -32,13 +32,15 @@ WhatsApp / memory                    Two apps (both valid Track A pieces)
 ┌─────────────────────────────────────────────────────────────┐
 │  TRACK A — Simple app (build first, keep using)             │
 │  pipeline.sales + quotation module · forms · Kanban · PDF   │
-│  Supabase order book · RBAC · cron jobs                     │
 └──────────────────────────────┬──────────────────────────────┘
-                               │ same APIs & tables
+                               │
 ┌──────────────────────────────▼──────────────────────────────┐
-│  TRACK B — AI / blueprint (only where app isn't enough)     │
-│  PDF/cabinet extract→confirm · chat intake · skills · MCP │
-│  Makes team faster — does not replace screens               │
+│  PRE-B — Architecture needs + tools inventory (required)    │
+│  docs/00b-before-track-b.md — per feature, before any AI    │
+└──────────────────────────────┬──────────────────────────────┘
+                               │
+┌──────────────────────────────▼──────────────────────────────┐
+│  TRACK B — AI overlay (named tools only)                    │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -66,16 +68,18 @@ These do **not** require LLM or MCP:
 
 ---
 
-## What to add later (Track B — AI / blueprint)
+## What to add later (Track B — after Pre-B)
 
-Only after Track A works for daily use:
+**Do not start Track B until** [00b-before-track-b.md](./00b-before-track-b.md) is filled for that feature (architecture needs + tools inventory).
 
-| When team feels pain | Track B addition |
-|----------------------|------------------|
-| Re-keying cabinet PDFs | Extract → review queue → confirm into line items |
-| Leads start in WhatsApp | Chat/MCP calling same `create_lead` API as the form |
-| Follow-ups forgotten at volume | Scheduled nudges + optional assistant |
-| One prompt can't cover finance + sales | Desks / orchestrator (M5) |
+Only after Track A works for daily use **and** Pre-B is done:
+
+| When team feels pain | Pre-B first | Track B addition |
+|----------------------|-------------|------------------|
+| Re-keying cabinet PDFs | Review queue UI + `confirm_line_items` API | `extract_cabinet_pdf` tool |
+| Leads start in WhatsApp | `POST /api/leads` stable | MCP `create_lead` → same API |
+| Follow-ups forgotten | Cron + task APIs | Nudges + optional LLM wording |
+| Multiple domains in chat | Tool list per desk | Desks / orchestrator (M5) |
 
 Full blueprint scope: [BLUEPRINT.md](./BLUEPRINT.md) — architecture, desks, governance.
 
@@ -100,8 +104,8 @@ Full blueprint scope: [BLUEPRINT.md](./BLUEPRINT.md) — architecture, desks, go
 | 1 | A | [M0 criteria](./08-milestones.md#m0--the-data-exists) |
 | 2 | A | Merge schema: CRM + `quotations` + `line_items` + `catalog` |
 | 3 | A | Port quotation UI into `pipeline.sales` |
-| 4 | B (later) | List top 3 PDF formats for cabinet import pilot |
-| 5 | Both | One Supabase URL in dev; freeze standalone quotation features |
+| 4 | **Pre-B** | [Architecture + tools](./00b-before-track-b.md) before any AI feature |
+| 5 | B (later) | Track B only for features with completed Pre-B sheet |
 
 ---
 

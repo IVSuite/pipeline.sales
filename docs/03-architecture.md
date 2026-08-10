@@ -10,7 +10,7 @@ CRM · quotes · forms · PDF       Chat · MCP · extract→confirm · skills
                     (one order book)
 ```
 
-The **six layers** below describe the **full platform** including Track B. **Track A** uses **L1, L2, L6** directly (governance, database, app UI). **L3–L5** are added when the app alone is not enough.
+The **six layers** below describe the full platform. **Track A** uses L1, L2, L6. **Pre-B** ([00b-before-track-b.md](./00b-before-track-b.md)) documents what L3–L6 need **before** Track B is built. **L3–L5** are implemented only after Pre-B is signed off.
 
 ---
 

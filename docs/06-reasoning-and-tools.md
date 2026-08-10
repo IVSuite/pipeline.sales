@@ -2,7 +2,9 @@
 
 **Track B — use when Track A (app + database) is not enough.**
 
-See [00-dual-approach.md](./00-dual-approach.md). Do not add LLM/MCP for workflows that a form, API route, and validation already handle reliably.
+**Before any Track B work:** complete [00b-before-track-b.md](./00b-before-track-b.md) — architecture needs + tools inventory for that feature.
+
+See [00-dual-approach.md](./00-dual-approach.md).
 
 | Build as app (Track A) | Add AI (Track B) |
 |------------------------|------------------|

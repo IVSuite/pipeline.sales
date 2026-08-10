@@ -7,9 +7,9 @@ This project uses **two tracks** that share **one order book** (one database):
 | Track | Build with | Use when |
 |-------|------------|----------|
 | **A — Simple app** | Screens, forms, API routes, Supabase, scheduled jobs | The job is structured, repeatable, and a database + validation is enough |
-| **B — AI layer** | LLM, extract → confirm, MCP tools, skills, chat | The job is messy, language-heavy, scales poorly manually, or sits **on top** to make Track A faster |
+| **B — AI layer** | LLM, extract → confirm, MCP tools, skills, chat | Messy input, scale — **only after [Pre-B doc](./00b-before-track-b.md)** |
 
-**Rule:** If Track A can ship something the team uses this week, **do Track A**. The blueprint and AI work focus on what Track A **cannot** do well — or what makes Track A **more efficient, effective, or scalable**.
+**Rule:** If Track A can ship something the team uses this week, **do Track A**. Before any Track B work, complete **[architecture needs + tools inventory](./00b-before-track-b.md)** for that feature. Then build AI on named tools — not vague “add LLM.”
 
 ---
 
@@ -25,10 +25,12 @@ Can a form + database + rules handle it reliably?
     │           Examples: create lead, move deal stage, issue quote ID,
     │           record confirmed payment, production status dropdown
     │
-    └── NO or "too slow at scale" ──► Track B: AI / automation on top
-                Examples: cabinet PDF → line items (extract → confirm),
-                dedupe + route lead from free text, follow-up nudges,
-                "what's blocking this order?" across records
+    └── NO or "too slow at scale" ──► Pre-B: architecture needs + tools inventory
+                │                      ([00b-before-track-b.md](./00b-before-track-b.md))
+                ▼
+                Track B: build only named tools / extract jobs on existing APIs
+                Examples: extract_cabinet_pdf → review queue → confirm_line_items,
+                chat calls create_lead (same API as form)
 ```
 
 ---
@@ -57,7 +59,9 @@ Can a form + database + rules handle it reliably?
 
 ## Track B — Blueprint / AI focus (overlay)
 
-The [blueprint](./BLUEPRINT.md) is **not** a replacement for the CRM or quotation app. It defines the **AI and automation layer** for gaps Track A leaves open.
+**Gate:** Complete [Before Track B — architecture & tools](./00b-before-track-b.md) for each feature before writing prompts or MCP servers.
+
+The [blueprint](./BLUEPRINT.md) defines Track B design patterns — not permission to skip app APIs or tool inventory.
 
 | Gap | Why app alone struggles | AI / blueprint response |
 |-----|-------------------------|-------------------------|
@@ -112,10 +116,11 @@ IV-quotation-app        ──port in──►  cabinet PDF extract → confirm
 | 1 | **A** | M0 — one database, merge schemas |
 | 2 | **A** | M2 — quotation inside CRM, PDF on deal |
 | 3 | **A** | M3 — payment form + gates (app UI, confirm button) |
-| 4 | **B** | Document extract → review queue for cabinet imports |
-| 5 | **B** | MCP/chat intake calling existing lead APIs (optional) |
-| 6 | **B** | Follow-up nudges + skills (when volume justifies) |
-| 7 | **B** | Orchestrator / desks (M5 — only if one assistant isn't enough) |
+| **—** | **Pre-B** | **[Architecture + tools doc](./00b-before-track-b.md)** per Track B feature |
+| 4 | **B** | Document extract → review queue (after Pre-B for M2b) |
+| 5 | **B** | MCP/chat intake (after Pre-B + `create_lead` API) |
+| 6 | **B** | Follow-up nudges + skills |
+| 7 | **B** | Orchestrator / desks (M5) |
 
 ---
 
@@ -130,4 +135,5 @@ IV-quotation-app        ──port in──►  cabinet PDF extract → confirm
 - [What's next](./WHATS-NEXT.md)
 - [Vision & principles](./01-vision-and-principles.md)
 - [Architecture — two layers](./03-architecture.md)
+- [**Before Track B — architecture & tools**](./00b-before-track-b.md)
 - [Milestones — app vs AI track](./08-milestones.md)

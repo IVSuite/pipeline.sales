@@ -20,7 +20,7 @@ The team currently runs its pipeline on **chats, screenshots, memory**, and **tw
 | **A — Simple app** | Next.js + Supabase: forms, Kanban, quotation editor, PDF, payment confirm, cron | Structured data, clear rules, team can click through it — **continue and extend** |
 | **B — AI / blueprint** | LLM, MCP tools, extract → confirm, skills, optional chat | Messy documents, free-text intake, cross-record assist, volume that manual entry cannot sustain |
 
-**This blueprint document primarily defines Track B** and shared governance. **Track A** is the existing CRM and quotation code — merged onto one database per [00-dual-approach.md](./00-dual-approach.md).
+**This blueprint document primarily defines Track B** and shared governance — **after** [Pre-B architecture & tools](./00b-before-track-b.md). **Track A** is the existing CRM and quotation code.
 
 The team currently runs lead intake through delivery with gaps filled by WhatsApp. Track A removes isolation and adds missing screens. Track B makes selected steps faster — it does **not** replace the app.
 

@@ -4,6 +4,7 @@ Plain-language definitions for the IV AI workflow platform.
 
 | Term | Plain meaning |
 |------|----------------|
+| **Pre-B** | Mandatory gate before Track B: document architecture needs and tools inventory per feature |
 | **Track A** | Simple app — forms, screens, API, Supabase; default for structured work |
 | **Track B** | AI overlay — LLM, MCP, extract→confirm; when app alone isn't enough or needs scale |
 | **Dual approach** | Both tracks on one order book; app first, AI on top |
