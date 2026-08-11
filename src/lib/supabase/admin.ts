@@ -13,8 +13,8 @@ export function createAdminClient() {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
     {
-      // CRM data lives in the `crm` schema of the shared IV Operation project.
-      db: { schema: "crm" },
+      // Pipeline data lives in the `pipeline` schema of the IV-Suite master project.
+      db: { schema: "pipeline" },
       auth: {
         autoRefreshToken: false,
         persistSession: false,
