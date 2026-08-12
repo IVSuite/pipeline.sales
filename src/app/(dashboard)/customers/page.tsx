@@ -3,13 +3,14 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ColumnDef } from "@tanstack/react-table";
-import { Plus, Search, Trash2, Pencil, SlidersHorizontal } from "lucide-react";
+import { Plus, Search, Trash2, Pencil, SlidersHorizontal, Upload } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input, Select } from "@/components/ui/input";
 import { DataTable, Pagination } from "@/components/ui/data-table";
 import { ConfirmDialog } from "@/components/ui/modal";
 import { CustomerForm } from "@/components/customers/customer-form";
+import { ImportCustomersDialog } from "@/components/customers/import-customers-dialog";
 import { useResourceList, useResourceMutations } from "@/hooks/use-resource";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { useProfiles } from "@/hooks/use-profiles";
@@ -27,6 +28,7 @@ export default function CustomersPage() {
   const [showFilters, setShowFilters] = useState(false);
   const [assignedTo, setAssignedTo] = useState("");
   const [formOpen, setFormOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
   const [editing, setEditing] = useState<CustomerWithRelations | undefined>();
   const [deleting, setDeleting] = useState<CustomerWithRelations | undefined>();
 
@@ -107,14 +109,19 @@ export default function CustomersPage() {
           <h1 className="text-xl font-semibold">Customers</h1>
           <p className="text-sm text-muted-foreground">Accounts that have converted from leads.</p>
         </div>
-        <Button
-          onClick={() => {
-            setEditing(undefined);
-            setFormOpen(true);
-          }}
-        >
-          <Plus className="h-4 w-4" /> New customer
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={() => setImportOpen(true)}>
+            <Upload className="h-4 w-4" /> Import data
+          </Button>
+          <Button
+            onClick={() => {
+              setEditing(undefined);
+              setFormOpen(true);
+            }}
+          >
+            <Plus className="h-4 w-4" /> New customer
+          </Button>
+        </div>
       </div>
 
       <Card>
@@ -169,6 +176,8 @@ export default function CustomersPage() {
         customer={editing}
         submitting={create.isPending || update.isPending}
       />
+
+      <ImportCustomersDialog open={importOpen} onClose={() => setImportOpen(false)} />
 
       <ConfirmDialog
         open={Boolean(deleting)}
