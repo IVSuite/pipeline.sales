@@ -59,9 +59,16 @@ export async function updateSession(request: NextRequest) {
     return redirectTo("/login", { redirectTo: pathname });
   }
 
-  if (user && (pathname === "/login" || pathname === "/signup")) {
-    return redirectTo("/dashboard");
-  }
+  // NOTE: we intentionally do NOT redirect an authenticated user away from
+  // /login or /signup here. Middleware (edge) and the dashboard server layout
+  // (a separate serverless invocation) each call getUser() independently; on a
+  // token-refresh boundary they can momentarily disagree about whether a user is
+  // authenticated. If middleware bounced /login → /dashboard while the layout
+  // bounced /dashboard → /login, the two gates ping-pong forever
+  // (ERR_TOO_MANY_REDIRECTS). Dropping this convenience redirect removes the
+  // loop's return edge, so a disagreement costs at most one redirect, never a
+  // loop. The login form still forwards to /dashboard on success (see
+  // auth-form.tsx), and RootPage ("/") still sends authed users to /dashboard.
 
   return response;
 }
