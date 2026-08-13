@@ -27,6 +27,8 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
+  // Refreshes the session and rotates tokens; the new tokens are written onto
+  // `response` via the setAll callback above.
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -34,14 +36,31 @@ export async function updateSession(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   const isPublicPath = PUBLIC_PATHS.some((path) => pathname.startsWith(path));
 
+  // Build a redirect that PRESERVES any auth cookies Supabase just refreshed.
+  // Returning a bare `NextResponse.redirect()` would drop those Set-Cookie
+  // headers, so the browser keeps replaying the old (already-rotated) refresh
+  // token, the session never sticks, and the app bounces /dashboard ⇄ /login
+  // forever → ERR_TOO_MANY_REDIRECTS. Copying the cookies over is the fix the
+  // Supabase SSR docs call out. Same-origin (clones request URL) so it never
+  // leaves the current host (e.g. a Preview deployment).
+  const redirectTo = (pathname: string, params?: Record<string, string>) => {
+    const url = request.nextUrl.clone();
+    url.pathname = pathname;
+    url.search = "";
+    if (params) {
+      for (const [key, value] of Object.entries(params)) url.searchParams.set(key, value);
+    }
+    const redirect = NextResponse.redirect(url);
+    response.cookies.getAll().forEach((cookie) => redirect.cookies.set(cookie));
+    return redirect;
+  };
+
   if (!user && !isPublicPath) {
-    const redirectUrl = new URL("/login", request.url);
-    redirectUrl.searchParams.set("redirectTo", pathname);
-    return NextResponse.redirect(redirectUrl);
+    return redirectTo("/login", { redirectTo: pathname });
   }
 
   if (user && (pathname === "/login" || pathname === "/signup")) {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
+    return redirectTo("/dashboard");
   }
 
   return response;
