@@ -58,6 +58,7 @@ export interface Lead {
   company_id: string | null;
   email: string | null;
   phone: string | null;
+  linkedin: string | null;
   position: string | null;
   lead_source: string | null;
   assigned_to: string | null;

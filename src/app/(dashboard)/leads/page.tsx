@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ColumnDef } from "@tanstack/react-table";
-import { Plus, Search, Trash2, Pencil, SlidersHorizontal } from "lucide-react";
+import { Plus, Search, Trash2, Pencil, SlidersHorizontal, Upload } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input, Select } from "@/components/ui/input";
@@ -11,6 +11,8 @@ import { Badge, priorityTone, statusTone } from "@/components/ui/badge";
 import { DataTable, Pagination } from "@/components/ui/data-table";
 import { ConfirmDialog } from "@/components/ui/modal";
 import { LeadForm } from "@/components/leads/lead-form";
+import { ImportDialog } from "@/components/import/import-dialog";
+import { LEAD_IMPORT_CONFIG } from "@/lib/import/customer-import";
 import { useResourceList, useResourceMutations } from "@/hooks/use-resource";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { useProfiles } from "@/hooks/use-profiles";
@@ -33,6 +35,7 @@ export default function LeadsPage() {
   const [minValue, setMinValue] = useState("");
   const [maxValue, setMaxValue] = useState("");
   const [formOpen, setFormOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
   const [editing, setEditing] = useState<LeadWithRelations | undefined>();
   const [deleting, setDeleting] = useState<LeadWithRelations | undefined>();
 
@@ -136,14 +139,19 @@ export default function LeadsPage() {
           <h1 className="text-xl font-semibold">Leads</h1>
           <p className="text-sm text-muted-foreground">Track and qualify incoming leads.</p>
         </div>
-        <Button
-          onClick={() => {
-            setEditing(undefined);
-            setFormOpen(true);
-          }}
-        >
-          <Plus className="h-4 w-4" /> New lead
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={() => setImportOpen(true)}>
+            <Upload className="h-4 w-4" /> Import data
+          </Button>
+          <Button
+            onClick={() => {
+              setEditing(undefined);
+              setFormOpen(true);
+            }}
+          >
+            <Plus className="h-4 w-4" /> New lead
+          </Button>
+        </div>
       </div>
 
       <Card>
@@ -222,6 +230,8 @@ export default function LeadsPage() {
         lead={editing}
         submitting={create.isPending || update.isPending}
       />
+
+      <ImportDialog open={importOpen} onClose={() => setImportOpen(false)} config={LEAD_IMPORT_CONFIG} />
 
       <ConfirmDialog
         open={Boolean(deleting)}

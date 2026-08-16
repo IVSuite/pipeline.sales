@@ -8,6 +8,10 @@ import {
   normalizeEmail,
   normalizeHeader,
   CUSTOMER_IMPORT_FIELDS,
+  LEAD_IMPORT_FIELDS,
+  COMPANY_IMPORT_FIELDS,
+  LEAD_IMPORT_CONFIG,
+  COMPANY_IMPORT_CONFIG,
   type ColumnMapping,
 } from "../src/lib/import/customer-import.ts";
 
@@ -159,6 +163,60 @@ Sole Trader,,555-0000,
 console.log("== fields sanity ==");
 eq(CUSTOMER_IMPORT_FIELDS.find((f) => f.key === "full_name")?.required, true, "full_name required");
 eq(CUSTOMER_IMPORT_FIELDS.filter((f) => f.required).length, 1, "only full_name required");
+
+console.log("== LEADS: customer fields + linkedin ==");
+{
+  eq(
+    LEAD_IMPORT_FIELDS.map((f) => f.key),
+    ["full_name", "email", "phone", "company", "linkedin"],
+    "lead fields = customer + linkedin"
+  );
+  const m = suggestMapping(["Full Name", "Email", "Phone", "Company", "LinkedIn"], LEAD_IMPORT_FIELDS);
+  eq(m.linkedin, 4, "linkedin auto-mapped");
+  eq(m.full_name, 0, "lead full_name mapped");
+  // linkedin is optional; a normal value passes
+  const v = validateMappedRow(
+    { full_name: "Jane", email: "jane@acme.com", linkedin: "https://linkedin.com/in/jane" },
+    LEAD_IMPORT_FIELDS
+  );
+  assert(v.valid, "lead with linkedin valid");
+  eq(v.data.linkedin, "https://linkedin.com/in/jane", "linkedin preserved");
+  // over-long linkedin (>500) fails
+  const v2 = validateMappedRow({ full_name: "Jane", linkedin: "x".repeat(501) }, LEAD_IMPORT_FIELDS);
+  assert(!v2.valid, "over-long linkedin fails");
+  // dedupe still by email
+  eq(LEAD_IMPORT_CONFIG.dedupeField, "email", "leads dedupe by email");
+}
+
+console.log("== COMPANIES: name + phone + address ==");
+{
+  eq(COMPANY_IMPORT_FIELDS.map((f) => f.key), ["name", "phone", "address"], "company fields");
+  eq(COMPANY_IMPORT_FIELDS.find((f) => f.key === "name")?.required, true, "company name required");
+  const m = suggestMapping(["Company", "Phone", "Address"], COMPANY_IMPORT_FIELDS);
+  eq(m.name, 0, "company name auto-mapped from 'Company'");
+  eq(m.address, 2, "address auto-mapped");
+  // name required
+  const bad = validateMappedRow({ name: "", address: "12 St" }, COMPANY_IMPORT_FIELDS);
+  assert(!bad.valid, "company without name fails");
+  const good = validateMappedRow({ name: "Acme", phone: "555", address: "12 Rd" }, COMPANY_IMPORT_FIELDS);
+  assert(good.valid, "company with name valid");
+  eq(good.data.address, "12 Rd", "address preserved");
+  // dedupe by name
+  eq(COMPANY_IMPORT_CONFIG.dedupeField, "name", "companies dedupe by name");
+  // applyMapping honours the field set
+  const out = applyMapping(["Acme Industries", "555-1000", "12 Industrial Rd"], m, COMPANY_IMPORT_FIELDS);
+  eq(out.name, "Acme Industries", "company applyMapping name");
+  eq(out.address, "12 Industrial Rd", "company applyMapping address");
+}
+
+console.log("== Customers unchanged (default field set) ==");
+{
+  // Calling the generalized fns with no field arg must behave exactly as before.
+  const m = suggestMapping(["Full Name", "Email", "Phone", "Company"]);
+  eq(m, { full_name: 0, email: 1, phone: 2, company: 3 }, "customer mapping unchanged");
+  const v = validateMappedRow({ full_name: "Jane", email: "bad" });
+  assert(!v.valid && v.errors.some((e) => e.field === "email"), "customer email validation unchanged");
+}
 
 console.log(`\n${passed} passed, ${failed} failed`);
 if (failed > 0) process.exit(1);

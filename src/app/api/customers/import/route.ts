@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
         result.failed++;
         result.errors.push({
           index,
-          full_name: v.data.full_name,
+          full_name: v.data.full_name ?? "",
           email: v.data.email ?? "",
           message: v.errors.map((e) => e.message).join("; "),
         });
@@ -140,7 +140,7 @@ export async function POST(request: NextRequest) {
           const { error } = await supabase.from("customers").update(patch).eq("id", id);
           if (error) {
             result.failed++;
-            result.errors.push({ index, full_name: data.full_name, email: data.email ?? "", message: error.message });
+            result.errors.push({ index, full_name: data.full_name ?? "", email: data.email ?? "", message: error.message });
           } else {
             result.updated++;
           }

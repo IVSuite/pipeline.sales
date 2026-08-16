@@ -95,14 +95,17 @@ export async function parseSpreadsheet(fileName: string, buffer: ArrayBuffer): P
   throw new Error("Unsupported file type. Please upload a .xlsx or .csv file.");
 }
 
-/** Builds a downloadable .xlsx template using the actual importable customer fields. */
-export async function buildTemplateXlsx(): Promise<Buffer> {
-  const { CUSTOMER_IMPORT_FIELDS } = await import("./customer-import");
+/** Core template builder: header row from `fields` + one row per example object. */
+async function buildTemplate(
+  fields: { key: string; label: string; required: boolean }[],
+  sheetName: string,
+  exampleRows: Record<string, string>[]
+): Promise<Buffer> {
   const workbook = new ExcelJS.Workbook();
   workbook.creator = "Pipeline CRM";
-  const sheet = workbook.addWorksheet("Customers");
+  const sheet = workbook.addWorksheet(sheetName);
 
-  sheet.columns = CUSTOMER_IMPORT_FIELDS.map((f) => ({
+  sheet.columns = fields.map((f) => ({
     header: f.required ? `${f.label} *` : f.label,
     key: f.key,
     width: Math.max(18, f.label.length + 6),
@@ -113,10 +116,29 @@ export async function buildTemplateXlsx(): Promise<Buffer> {
   headerRow.font = { bold: true };
   headerRow.alignment = { vertical: "middle" };
 
-  // Two example rows so users see the expected shape.
-  sheet.addRow({ full_name: "Jane Cooper", email: "jane@acme.com", phone: "+1 555 010 4477", company: "Acme Industries" });
-  sheet.addRow({ full_name: "Omar Haddad", email: "omar@nileco.com", phone: "+20 100 234 5678", company: "Nile Trading Co." });
+  for (const row of exampleRows) sheet.addRow(row);
 
   const out = await workbook.xlsx.writeBuffer();
   return Buffer.from(out);
+}
+
+/** Builds a downloadable .xlsx template using the actual importable customer fields. */
+export async function buildTemplateXlsx(): Promise<Buffer> {
+  const { CUSTOMER_IMPORT_FIELDS } = await import("./customer-import");
+  // Two example rows so users see the expected shape (unchanged Customers template).
+  return buildTemplate(CUSTOMER_IMPORT_FIELDS, "Customers", [
+    { full_name: "Jane Cooper", email: "jane@acme.com", phone: "+1 555 010 4477", company: "Acme Industries" },
+    { full_name: "Omar Haddad", email: "omar@nileco.com", phone: "+20 100 234 5678", company: "Nile Trading Co." },
+  ]);
+}
+
+/** Builds a downloadable .xlsx template for any field set (Leads, Companies, …). */
+export async function buildTemplateXlsxForFields(
+  fields: { key: string; label: string; required: boolean; example: string }[],
+  sheetName: string
+): Promise<Buffer> {
+  // One example row derived from each field's example value.
+  const example: Record<string, string> = {};
+  for (const f of fields) example[f.key] = f.example;
+  return buildTemplate(fields, sheetName, [example]);
 }

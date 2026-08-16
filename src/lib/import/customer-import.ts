@@ -1,23 +1,31 @@
-// Pure, dependency-free helpers for the customer bulk-import feature.
+// Pure, dependency-free helpers for the bulk-import feature.
 //
 // Everything here is framework-agnostic and side-effect-free so it can be unit
 // tested in isolation (see scripts/test-import.mjs) and shared between the
 // browser wizard and the server route handlers. No Supabase, no React, no I/O.
+//
+// The Customers importer shipped first; Leads and Companies reuse the exact same
+// logic by passing a different field set / config. Every function defaults to the
+// customer field set so existing Customers call sites are unchanged.
 
-/** A field on the `customers` table that a spreadsheet column can map onto. */
+/** A field on a target table that a spreadsheet column can map onto. */
 export interface ImportField {
-  /** Column key on the customers table. */
-  key: "full_name" | "email" | "phone" | "company";
+  /** Column key on the target table (or a virtual key like `company` resolved server-side). */
+  key: string;
   label: string;
   required: boolean;
   /** Lower-cased header aliases used for auto-detection. */
   aliases: string[];
   example: string;
+  /** Max length allowed (validation). */
+  maxLength?: number;
+  /** Special format validation. */
+  format?: "email";
 }
 
 // Only fields that make sense for a spreadsheet import. `company` is resolved to
-// a company_id server-side (find-or-create by name); the rest map 1:1 to columns
-// on public.customers. assigned_to / created_by are set to the importing user.
+// a company_id server-side (find-or-create by name); the rest map 1:1 to columns.
+// assigned_to / created_by are set to the importing user.
 export const CUSTOMER_IMPORT_FIELDS: ImportField[] = [
   {
     key: "full_name",
@@ -25,6 +33,7 @@ export const CUSTOMER_IMPORT_FIELDS: ImportField[] = [
     required: true,
     aliases: ["full name", "name", "customer", "customer name", "contact", "contact name", "client", "client name"],
     example: "Jane Cooper",
+    maxLength: 200,
   },
   {
     key: "email",
@@ -32,6 +41,8 @@ export const CUSTOMER_IMPORT_FIELDS: ImportField[] = [
     required: false,
     aliases: ["email", "e-mail", "email address", "mail", "e mail"],
     example: "jane@acme.com",
+    maxLength: 200,
+    format: "email",
   },
   {
     key: "phone",
@@ -39,6 +50,7 @@ export const CUSTOMER_IMPORT_FIELDS: ImportField[] = [
     required: false,
     aliases: ["phone", "phone number", "telephone", "tel", "mobile", "cell", "contact number"],
     example: "+1 555 010 4477",
+    maxLength: 40,
   },
   {
     key: "company",
@@ -46,13 +58,114 @@ export const CUSTOMER_IMPORT_FIELDS: ImportField[] = [
     required: false,
     aliases: ["company", "company name", "organization", "organisation", "org", "account", "business"],
     example: "Acme Industries",
+    maxLength: 200,
   },
 ];
 
-export type FieldKey = ImportField["key"];
+// Leads = the exact Customers fields + LinkedIn (maps to leads.linkedin).
+export const LEAD_IMPORT_FIELDS: ImportField[] = [
+  ...CUSTOMER_IMPORT_FIELDS,
+  {
+    key: "linkedin",
+    label: "LinkedIn",
+    required: false,
+    aliases: ["linkedin", "linked in", "linkedin url", "linkedin profile", "li profile", "li url"],
+    example: "https://linkedin.com/in/jane-cooper",
+    maxLength: 500,
+  },
+];
 
-/** Maps each importable field to the source column index, or null if unmapped. */
-export type ColumnMapping = Record<FieldKey, number | null>;
+// Companies are a different entity: the table has `name`, `phone`, `address`
+// (no full_name/email/company columns). We reuse the same importer with the
+// applicable fields only — company Name (dedupe key) + Phone + Address.
+export const COMPANY_IMPORT_FIELDS: ImportField[] = [
+  {
+    key: "name",
+    label: "Company name",
+    required: true,
+    aliases: ["company", "company name", "name", "organization", "organisation", "org", "account", "business"],
+    example: "Acme Industries",
+    maxLength: 200,
+  },
+  {
+    key: "phone",
+    label: "Phone",
+    required: false,
+    aliases: ["phone", "phone number", "telephone", "tel", "mobile", "cell", "contact number"],
+    example: "+1 555 010 4477",
+    maxLength: 40,
+  },
+  {
+    key: "address",
+    label: "Address",
+    required: false,
+    aliases: ["address", "company address", "location", "street", "billing address", "office address"],
+    example: "12 Industrial Rd, Cairo",
+    maxLength: 300,
+  },
+];
+
+export type FieldKey = string;
+
+/** Maps each importable field key to the source column index, or null if unmapped. */
+export type ColumnMapping = Record<string, number | null>;
+
+/** Per-entity import configuration; drives the shared dialog + routes. */
+export interface ImportConfig {
+  entity: "customers" | "leads" | "companies";
+  fields: ImportField[];
+  /** Base API path; the dialog derives `${endpoint}`, `${endpoint}/parse`, `${endpoint}/template`. */
+  endpoint: string;
+  title: string;
+  entityNoun: string;
+  entityNounPlural: string;
+  /** Field key used to detect duplicates (email for people, name for companies). */
+  dedupeField: string;
+  /** Human label for the dedupe key, used in UI copy. */
+  dedupeLabel: string;
+  templateFileName: string;
+  /** react-query key to invalidate on success. */
+  queryKey: string;
+}
+
+export const CUSTOMER_IMPORT_CONFIG: ImportConfig = {
+  entity: "customers",
+  fields: CUSTOMER_IMPORT_FIELDS,
+  endpoint: "/api/customers/import",
+  title: "Import customers",
+  entityNoun: "customer",
+  entityNounPlural: "customers",
+  dedupeField: "email",
+  dedupeLabel: "email",
+  templateFileName: "pipeline-customers-template.xlsx",
+  queryKey: "customers",
+};
+
+export const LEAD_IMPORT_CONFIG: ImportConfig = {
+  entity: "leads",
+  fields: LEAD_IMPORT_FIELDS,
+  endpoint: "/api/leads/import",
+  title: "Import leads",
+  entityNoun: "lead",
+  entityNounPlural: "leads",
+  dedupeField: "email",
+  dedupeLabel: "email",
+  templateFileName: "pipeline-leads-template.xlsx",
+  queryKey: "leads",
+};
+
+export const COMPANY_IMPORT_CONFIG: ImportConfig = {
+  entity: "companies",
+  fields: COMPANY_IMPORT_FIELDS,
+  endpoint: "/api/companies/import",
+  title: "Import companies",
+  entityNoun: "company",
+  entityNounPlural: "companies",
+  dedupeField: "name",
+  dedupeLabel: "company name",
+  templateFileName: "pipeline-companies-template.xlsx",
+  queryKey: "companies",
+};
 
 /** Normalizes a header/cell for fuzzy comparison: lower-case, collapse non-alphanumerics to single spaces. */
 export function normalizeHeader(value: string): string {
@@ -69,13 +182,14 @@ export function normalizeHeader(value: string): string {
  * each field's aliases. Exact normalized matches win over substring matches, and
  * a source column is never assigned to two fields.
  */
-export function suggestMapping(headers: string[]): ColumnMapping {
+export function suggestMapping(headers: string[], fields: ImportField[] = CUSTOMER_IMPORT_FIELDS): ColumnMapping {
   const norm = headers.map(normalizeHeader);
   const used = new Set<number>();
-  const mapping: ColumnMapping = { full_name: null, email: null, phone: null, company: null };
+  const mapping: ColumnMapping = {};
+  for (const f of fields) mapping[f.key] = null;
 
   // Pass 1: exact alias / key matches.
-  for (const field of CUSTOMER_IMPORT_FIELDS) {
+  for (const field of fields) {
     const candidates = [field.key.replace(/_/g, " "), field.label.toLowerCase(), ...field.aliases].map(normalizeHeader);
     const idx = norm.findIndex((h, i) => !used.has(i) && candidates.includes(h));
     if (idx !== -1) {
@@ -85,7 +199,7 @@ export function suggestMapping(headers: string[]): ColumnMapping {
   }
 
   // Pass 2: substring / contains matches for anything still unmapped.
-  for (const field of CUSTOMER_IMPORT_FIELDS) {
+  for (const field of fields) {
     if (mapping[field.key] !== null) continue;
     const candidates = [field.key.replace(/_/g, " "), ...field.aliases].map(normalizeHeader);
     const idx = norm.findIndex(
@@ -163,18 +277,14 @@ export function parseCsv(text: string): { headers: string[]; rows: string[][] } 
 }
 
 export interface RowError {
-  field: FieldKey | "row";
+  field: string;
   message: string;
 }
 
 export interface ValidatedRow {
   valid: boolean;
-  data: {
-    full_name: string;
-    email: string | null;
-    phone: string | null;
-    company: string | null;
-  };
+  /** Trimmed value per field key, or null when empty. */
+  data: Record<string, string | null>;
   errors: RowError[];
 }
 
@@ -182,62 +292,56 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /** Normalizes an email for duplicate comparison: trimmed + lower-cased. */
 export function normalizeEmail(email: string | null | undefined): string | null {
-  if (!email) return null;
-  const trimmed = email.trim().toLowerCase();
+  return normalizeDedupeKey(email);
+}
+
+/** Normalizes any dedupe key (email or company name): trimmed + lower-cased. */
+export function normalizeDedupeKey(value: string | null | undefined): string | null {
+  if (!value) return null;
+  const trimmed = value.trim().toLowerCase();
   return trimmed || null;
 }
 
 /**
- * Validates one mapped row. `raw` holds the string cell values already pulled
- * out per field. Mirrors the constraints in customerSchema (full_name required,
- * valid email, length caps) but tailored to the flat spreadsheet shape.
+ * Validates one mapped row against the given field set. Applies required checks,
+ * length caps, and email-format validation per field. Defaults to the customer
+ * field set for backward compatibility.
  */
-export function validateMappedRow(raw: Partial<Record<FieldKey, string>>): ValidatedRow {
+export function validateMappedRow(
+  raw: Partial<Record<string, string>>,
+  fields: ImportField[] = CUSTOMER_IMPORT_FIELDS
+): ValidatedRow {
   const errors: RowError[] = [];
+  const data: Record<string, string | null> = {};
 
-  const full_name = (raw.full_name ?? "").trim();
-  const emailRaw = (raw.email ?? "").trim();
-  const phone = (raw.phone ?? "").trim();
-  const company = (raw.company ?? "").trim();
+  for (const field of fields) {
+    const val = (raw[field.key] ?? "").trim();
 
-  if (!full_name) {
-    errors.push({ field: "full_name", message: "Full name is required" });
-  } else if (full_name.length > 200) {
-    errors.push({ field: "full_name", message: "Full name exceeds 200 characters" });
-  }
-
-  if (emailRaw) {
-    if (emailRaw.length > 200) {
-      errors.push({ field: "email", message: "Email exceeds 200 characters" });
-    } else if (!EMAIL_RE.test(emailRaw)) {
-      errors.push({ field: "email", message: `Invalid email: "${emailRaw}"` });
+    if (field.required && !val) {
+      errors.push({ field: field.key, message: `${field.label} is required` });
+    } else if (val) {
+      if (field.maxLength && val.length > field.maxLength) {
+        errors.push({ field: field.key, message: `${field.label} exceeds ${field.maxLength} characters` });
+      }
+      if (field.format === "email" && !EMAIL_RE.test(val)) {
+        errors.push({ field: field.key, message: `Invalid email: "${val}"` });
+      }
     }
+
+    data[field.key] = val || null;
   }
 
-  if (phone && phone.length > 40) {
-    errors.push({ field: "phone", message: "Phone exceeds 40 characters" });
-  }
-
-  if (company && company.length > 200) {
-    errors.push({ field: "company", message: "Company exceeds 200 characters" });
-  }
-
-  return {
-    valid: errors.length === 0,
-    data: {
-      full_name,
-      email: emailRaw || null,
-      phone: phone || null,
-      company: company || null,
-    },
-    errors,
-  };
+  return { valid: errors.length === 0, data, errors };
 }
 
 /** Pulls the per-field string cells out of a raw row given the active mapping. */
-export function applyMapping(row: string[], mapping: ColumnMapping): Partial<Record<FieldKey, string>> {
-  const out: Partial<Record<FieldKey, string>> = {};
-  for (const field of CUSTOMER_IMPORT_FIELDS) {
+export function applyMapping(
+  row: string[],
+  mapping: ColumnMapping,
+  fields: ImportField[] = CUSTOMER_IMPORT_FIELDS
+): Partial<Record<string, string>> {
+  const out: Partial<Record<string, string>> = {};
+  for (const field of fields) {
     const idx = mapping[field.key];
     if (idx !== null && idx !== undefined) {
       out[field.key] = row[idx] ?? "";

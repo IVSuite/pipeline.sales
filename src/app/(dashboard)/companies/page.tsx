@@ -3,13 +3,15 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ColumnDef } from "@tanstack/react-table";
-import { Plus, Search, Trash2, Pencil } from "lucide-react";
+import { Plus, Search, Trash2, Pencil, Upload } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DataTable, Pagination } from "@/components/ui/data-table";
 import { ConfirmDialog } from "@/components/ui/modal";
 import { CompanyForm } from "@/components/companies/company-form";
+import { ImportDialog } from "@/components/import/import-dialog";
+import { COMPANY_IMPORT_CONFIG } from "@/lib/import/customer-import";
 import { useResourceList, useResourceMutations } from "@/hooks/use-resource";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import type { CompanyWithRelations } from "@/types/api";
@@ -23,6 +25,7 @@ export default function CompaniesPage() {
   const [sortBy, setSortBy] = useState("created_at");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [formOpen, setFormOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
   const [editing, setEditing] = useState<CompanyWithRelations | undefined>();
   const [deleting, setDeleting] = useState<CompanyWithRelations | undefined>();
 
@@ -101,14 +104,19 @@ export default function CompaniesPage() {
           <h1 className="text-xl font-semibold">Companies</h1>
           <p className="text-sm text-muted-foreground">Accounts your team is working with.</p>
         </div>
-        <Button
-          onClick={() => {
-            setEditing(undefined);
-            setFormOpen(true);
-          }}
-        >
-          <Plus className="h-4 w-4" /> New company
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={() => setImportOpen(true)}>
+            <Upload className="h-4 w-4" /> Import data
+          </Button>
+          <Button
+            onClick={() => {
+              setEditing(undefined);
+              setFormOpen(true);
+            }}
+          >
+            <Plus className="h-4 w-4" /> New company
+          </Button>
+        </div>
       </div>
 
       <Card>
@@ -148,6 +156,8 @@ export default function CompaniesPage() {
         company={editing}
         submitting={create.isPending || update.isPending}
       />
+
+      <ImportDialog open={importOpen} onClose={() => setImportOpen(false)} config={COMPANY_IMPORT_CONFIG} />
 
       <ConfirmDialog
         open={Boolean(deleting)}
