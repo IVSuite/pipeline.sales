@@ -83,7 +83,15 @@ for (const table of TABLES) {
     const existing = byId.get(row.id);
     if (!existing) { inserts.push(row); continue; }
     const changed = differs(row, existing);
-    if (changed) updates.push({ row, changed });
+    if (!changed) continue;
+    // A row this script has already synced comes back with `updated_at` set by
+    // crm's BEFORE UPDATE trigger, which is strictly later than the source's.
+    // Re-writing it would only bump the stamp again, so a second run would
+    // never settle. Skip that case; a source stamp that is NEWER than crm's is
+    // a genuine edit and still syncs.
+    const onlyStamp = !differs({ ...row, updated_at: existing.updated_at }, existing);
+    if (onlyStamp && existing.updated_at > row.updated_at) continue;
+    updates.push({ row, changed });
   }
   const orphans = target.filter((r) => !source.some((s) => s.id === r.id));
   orphanTotal += orphans.length;
@@ -134,17 +142,43 @@ for (const p of plan) {
 }
 
 // Re-read and confirm the two sides now agree.
+//
+// `updated_at` is excluded from the verdict: `crm` carries a BEFORE UPDATE
+// `set_updated_at` trigger, so any row this script *updates* comes back stamped
+// with the sync's own timestamp rather than the source's. That is the target
+// database working as designed — the row genuinely did just change there — and
+// failing on it would make the stop-condition below cry wolf. Inserts are
+// unaffected (the trigger is UPDATE-only), so original timestamps survive on
+// every row that is merely copied. Trigger-rewritten stamps are counted and
+// reported separately so they can never hide a real difference.
 console.log("\nVerifying…");
-let bad = 0;
+let bad = 0, stampedTotal = 0;
 for (const table of TABLES) {
   const [source, target] = await Promise.all([fetchAll(src, table), fetchAll(dst, table)]);
   const byId = new Map(target.map((r) => [r.id, r]));
   const missing = source.filter((r) => !byId.has(r.id)).length;
-  const mismatched = source.filter((r) => byId.has(r.id) && differs(r, byId.get(r.id))).length;
+
+  let mismatched = 0, stamped = 0;
+  for (const row of source) {
+    const existing = byId.get(row.id);
+    if (!existing) continue;
+    const field = differs(row, existing);
+    if (!field) continue;
+    // Re-compare with updated_at held equal; if nothing else differs, it was
+    // only the trigger.
+    if (differs({ ...row, updated_at: existing.updated_at }, existing)) mismatched++;
+    else stamped++;
+  }
+  stampedTotal += stamped;
+
   const ok = missing === 0 && mismatched === 0;
   if (!ok) bad++;
-  console.log(`${ok ? "PASS" : "FAIL"}  ${table.padEnd(14)} source=${source.length} crm=${target.length} missing=${missing} mismatched=${mismatched}`);
+  console.log(
+    `${ok ? "PASS" : "FAIL"}  ${table.padEnd(14)} source=${source.length} crm=${target.length}` +
+    ` missing=${missing} mismatched=${mismatched}` + (stamped ? ` (+${stamped} updated_at set by trigger)` : "")
+  );
 }
 
+if (stampedTotal) console.log(`\n${stampedTotal} updated row(s) carry the sync's timestamp instead of the source's — expected.`);
 console.log(bad ? `\n${bad} table(s) still out of sync — do NOT flip the Vercel env yet.` : "\nAll tables in sync. Safe to flip the Vercel env.");
 process.exit(bad ? 1 : 0);
