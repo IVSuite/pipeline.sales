@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { DB_SCHEMA } from "./config";
 
 const PUBLIC_PATHS = ["/login", "/signup", "/auth/callback"];
 
@@ -10,6 +11,10 @@ export async function updateSession(request: NextRequest) {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
+      // This client only refreshes the session (auth lives outside PostgREST),
+      // but keep the schema aligned with the rest of the app so any query added
+      // here later hits `crm` rather than silently falling back to `public`.
+      db: { schema: DB_SCHEMA },
       cookies: {
         getAll() {
           return request.cookies.getAll();

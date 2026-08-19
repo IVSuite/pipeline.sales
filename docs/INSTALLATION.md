@@ -1,11 +1,19 @@
 # Installation Guide
 
+> **This app no longer provisions its own backend.** It runs against the shared
+> **IV-Suite** Supabase project (`hpgfwtezgrzbzqsdotkt`), where the CRM tables
+> live in the **`crm` schema**. Sections 1 and 2 below describe how the CRM was
+> originally stood up on its own project and are kept for reference only — do
+> **not** create a new project, and do **not** run those migrations against
+> IV-Suite (they target `public`, which there belongs to the quotation app).
+> To set up a dev machine, skip to **section 3**.
+
 ## Prerequisites
 
 - Node.js 20.9+ and npm
-- A free [Supabase](https://supabase.com) account
+- Access to the IV-Suite Supabase project (for the URL and publishable key)
 
-## 1. Create a Supabase project
+## 1. Create a Supabase project *(historical — skip)*
 
 1. Go to [supabase.com/dashboard](https://supabase.com/dashboard) → **New project**.
 2. Pick an organization, name, database password, and region. Wait for provisioning (~2 minutes).
@@ -14,7 +22,7 @@
    - **anon public** key → `NEXT_PUBLIC_SUPABASE_ANON_KEY`
    - **service_role** key → `SUPABASE_SERVICE_ROLE_KEY` (keep this secret — never commit it or expose it to the browser)
 
-## 2. Run the database migrations
+## 2. Run the database migrations *(historical — skip)*
 
 Open **SQL Editor** in the Supabase dashboard and run these files **in order**, each as its own query:
 
@@ -24,7 +32,8 @@ Open **SQL Editor** in the Supabase dashboard and run these files **in order**, 
 
 (Alternatively, if you have the [Supabase CLI](https://supabase.com/docs/guides/cli) and Docker installed, `supabase link` to your project and `supabase db push` accomplishes the same thing for the two migration files, then run `seed.sql` separately via the SQL editor or `psql`.)
 
-After seeding, you should be able to sign in with:
+These already ran on IV-Suite, schema-qualified to `crm`. The demo accounts
+below exist there:
 
 | Email | Password | Role |
 |---|---|---|
@@ -39,13 +48,21 @@ After seeding, you should be able to sign in with:
 cp .env.example .env.local
 ```
 
-Fill in the three values from step 1:
+Point it at IV-Suite and its `crm` schema:
 
 ```bash
-NEXT_PUBLIC_SUPABASE_URL=https://your-project-ref.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-public-key
-SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+NEXT_PUBLIC_SUPABASE_URL=https://hpgfwtezgrzbzqsdotkt.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<the IV-Suite publishable key>
+NEXT_PUBLIC_SUPABASE_DB_SCHEMA=crm
 ```
+
+`NEXT_PUBLIC_SUPABASE_DB_SCHEMA` is required. Leave it out and every query
+fails with `PGRST205 Could not find the table 'public.<name>'`, because on
+IV-Suite `public` holds the quotation app's tables, not the CRM's.
+
+`SUPABASE_SERVICE_ROLE_KEY` is optional — nothing under `src/` uses it. Only set
+it if you intend to run `scripts/wipe-data.mjs`, which deletes every CRM record
+on whatever project `.env.local` points at (now the shared central database).
 
 `.env.local` is gitignored — never commit real credentials.
 
@@ -70,7 +87,8 @@ Open [http://localhost:3000](http://localhost:3000). You'll be redirected to `/l
 
 ## Troubleshooting
 
-- **"Invalid API key" / auth errors** — double check you copied the `anon` key (not the `service_role` key) into `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
-- **Empty dashboard / no data** — confirm `supabase/seed.sql` ran without errors; check the Supabase **Table Editor** to see if rows exist.
+- **"Invalid API key" / auth errors** — double check you copied the `anon`/publishable key (not the `service_role` key) into `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
+- **`PGRST205 Could not find the table 'public.leads'`** (or any other table) — `NEXT_PUBLIC_SUPABASE_DB_SCHEMA` is missing or wrong. It must be `crm` on IV-Suite. Also confirm `crm` is listed under **Settings → API → Exposed schemas**.
+- **Empty dashboard / no data** — check the Supabase **Table Editor** with the schema selector set to `crm`, not `public`.
 - **Sign-up succeeds but you're stuck on a blank profile** — the `handle_new_user` trigger (in `0001_init.sql`) auto-creates a `profiles` row on signup. If you ran the migrations out of order or modified them, verify the trigger exists under **Database → Triggers** on `auth.users`.
 - **Type errors mentioning `RouteContext` / `PageProps`** — these are Next.js 16 generated ambient types; run `npm run dev` or `npm run build` once so Next.js can generate them (`next typegen` runs automatically).

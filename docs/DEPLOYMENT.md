@@ -23,9 +23,14 @@ git push -u origin main
 
    | Key | Value |
    |---|---|
-   | `NEXT_PUBLIC_SUPABASE_URL` | Your Supabase project URL |
-   | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Your Supabase anon public key |
-   | `SUPABASE_SERVICE_ROLE_KEY` | Your Supabase service role key (mark it **Sensitive**) |
+   | `NEXT_PUBLIC_SUPABASE_URL` | `https://hpgfwtezgrzbzqsdotkt.supabase.co` (IV-Suite central project) |
+   | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | The IV-Suite publishable key |
+   | `NEXT_PUBLIC_SUPABASE_DB_SCHEMA` | `crm` |
+   | `SUPABASE_SERVICE_ROLE_KEY` | Only if something server-side actually needs to bypass RLS (mark it **Sensitive**) |
+
+   `NEXT_PUBLIC_SUPABASE_DB_SCHEMA` is not optional on IV-Suite: the CRM tables
+   live in the `crm` schema, and `public` there belongs to the quotation app.
+   Omit it and every query 404s with `PGRST205`.
 
 5. Click **Deploy**.
 
@@ -45,7 +50,18 @@ If you want **separate** staging vs. production data, create a second Supabase p
 
 ## 5. Ongoing schema changes
 
-When you add new migrations under `supabase/migrations/`, run them against the production Supabase project's SQL Editor (or via `supabase db push` with the CLI linked to that project) before or as part of deploying the corresponding code change. There's no automatic migration runner wired into the Vercel build — treat schema changes as a manual, ordered step alongside deploys.
+The files under `supabase/migrations/` describe the CRM as it was built on the
+standalone `pipeline-sales-crm` project, where everything sat in `public`. On
+IV-Suite the same tables live in `crm`, so those files are **history, not a
+runnable migration set** — do not `supabase db push` them at the central
+project, or you will create a second copy of the CRM in `public`.
+
+New schema changes must be written as `crm`-qualified SQL and applied to the
+IV-Suite project deliberately (SQL Editor, or the CLI linked to
+`hpgfwtezgrzbzqsdotkt`), before or as part of deploying the corresponding code
+change. There is no automatic migration runner wired into the Vercel build.
+Remember that this database is shared with the other IV-Suite modules: keep
+changes inside the `crm` schema.
 
 ## 6. Custom domain (optional)
 
