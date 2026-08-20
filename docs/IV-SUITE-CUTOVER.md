@@ -1,5 +1,20 @@
 # Pipeline CRM → IV-Suite cutover runbook
 
+> **STATUS: COMPLETED 20 Aug 2026.** Production
+> (`https://pipeline-sales-crm.vercel.app`, deployment `dpl_7HM8ZfYdrdrqP8LYtbqbGZeUWrcG`)
+> now runs against IV-Suite `crm`, verified by reading the live bundle and by
+> authenticated CRUD through the deployed API routes. Final counts: profiles 6,
+> companies 349, leads 10, customers 0, deals 12, tasks 1, notes 0,
+> activities 47, notifications 0.
+>
+> **Lesson worth keeping:** the write freeze did not hold. Two deals (~739k
+> combined) and their activities were created on the old backend *after* the
+> first sync and had to be recovered in a second pass. If you ever run this
+> again, re-run the sync dry run immediately before the deploy and again
+> immediately after — the second check is what caught them.
+>
+> The steps below are kept as the executed record and as the rollback reference.
+
 Moves production off the standalone `pipeline-sales-crm` Supabase project and
 onto the IV-Suite central project's `crm` schema.
 
@@ -105,8 +120,12 @@ but that link is broken without it.
 - Open the browser console: no `PGRST205` and no RLS errors.
 - Sign in as a `sales_rep` and confirm they still cannot edit another rep's
   lead.
-- Hard-refresh once (Ctrl+Shift+R). The PWA service worker caches aggressively
-  and can serve a pre-cutover bundle.
+- Reload any tab that was already open. `NEXT_PUBLIC_*` values are baked into
+  the JS bundle at build time, so a tab loaded before the cutover holds the old
+  Supabase URL in memory and keeps writing to the old project until reloaded.
+  A plain reload is enough — `public/sw.js` deliberately caches only `/icons/*`
+  and `/manifest.json` (network-first) and never pages, API responses, or app
+  chunks, so the service worker cannot serve a stale bundle.
 
 ### 6. Only then, retire the old project
 
