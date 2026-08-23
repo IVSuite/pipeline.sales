@@ -17,7 +17,7 @@ import type { DealInput } from "@/lib/validation/schemas";
 export function DealBoard() {
   const queryClient = useQueryClient();
   const { data, isLoading } = useResourceList<DealWithRelations>("deals", { pageSize: "all" });
-  const { create } = useResourceMutations("deals");
+  const { create } = useResourceMutations("deals", ["leads"]);
   const [activeDeal, setActiveDeal] = useState<DealWithRelations | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [defaultStage, setDefaultStage] = useState<string | undefined>();
@@ -73,6 +73,8 @@ export function DealBoard() {
       toast.error("Failed to move deal — reverted");
     } finally {
       queryClient.invalidateQueries({ queryKey: ["deals"] });
+      // A stage change can change a linked lead's deal stats — refresh Leads too.
+      queryClient.invalidateQueries({ queryKey: ["leads"] });
     }
   }
 

@@ -13,7 +13,7 @@ import type { DealWithRelations } from "@/types/api";
 export function DealCard({ deal }: { deal: DealWithRelations }) {
   const router = useRouter();
   const [deleteOpen, setDeleteOpen] = useState(false);
-  const { remove } = useResourceMutations("deals");
+  const { remove } = useResourceMutations("deals", ["leads"]);
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: deal.id,
   });

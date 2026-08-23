@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireUser, errorResponse } from "@/lib/rbac";
 import { parseListParams, paginatedResponse, zodErrorResponse, nullifyEmptyKeys } from "@/lib/api-utils";
 import { leadSchema } from "@/lib/validation/schemas";
+import { aggregateDealStatsByLead, type DealStatRow } from "@/lib/deal-stats";
 
 const SELECT =
   "*, company:companies(id, name), assignee:profiles!assigned_to(id, full_name)";
@@ -39,7 +40,25 @@ export async function GET(request: NextRequest) {
     const { data, error, count } = await query;
     if (error) throw error;
 
-    return paginatedResponse(data, count, params);
+    // Per-lead deal stats, computed on read from deals.lead_id (never stored on
+    // leads). Only the deals linked to the current page of leads are fetched.
+    const leadIds = (data ?? []).map((l) => l.id);
+    let statsByLead = new Map<string, { count: number; total: number }>();
+    if (leadIds.length > 0) {
+      const { data: dealRows, error: dealsError } = await supabase
+        .from("deals")
+        .select("lead_id, value")
+        .in("lead_id", leadIds);
+      if (dealsError) throw dealsError;
+      statsByLead = aggregateDealStatsByLead((dealRows ?? []) as DealStatRow[]);
+    }
+
+    const enriched = (data ?? []).map((lead) => {
+      const stat = statsByLead.get(lead.id);
+      return { ...lead, deals_count: stat?.count ?? 0, deals_total_value: stat?.total ?? 0 };
+    });
+
+    return paginatedResponse(enriched, count, params);
   } catch (error) {
     return errorResponse(error);
   }

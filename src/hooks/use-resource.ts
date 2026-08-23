@@ -44,9 +44,14 @@ export function useResourceOne<T>(resource: string, id: string | undefined) {
   });
 }
 
-export function useResourceMutations(resource: string) {
+export function useResourceMutations(resource: string, relatedKeys: string[] = []) {
   const queryClient = useQueryClient();
-  const invalidate = () => queryClient.invalidateQueries({ queryKey: [resource] });
+  const invalidate = () => {
+    queryClient.invalidateQueries({ queryKey: [resource] });
+    // Also refresh related lists whose derived data depends on this resource
+    // (e.g. mutating a deal changes each linked lead's deal count/value).
+    for (const key of relatedKeys) queryClient.invalidateQueries({ queryKey: [key] });
+  };
 
   const create = useMutation({
     mutationFn: (body: unknown) =>

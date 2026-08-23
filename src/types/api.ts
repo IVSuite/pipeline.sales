@@ -16,6 +16,10 @@ export interface CompanyWithRelations extends Company {
 export interface LeadWithRelations extends Lead {
   company: { id: string; name: string } | null;
   assignee: ProfileRef | null;
+  /** Number of deals linked to this lead (computed on read; not stored). */
+  deals_count: number;
+  /** Sum of the values of deals linked to this lead (computed on read; not stored). */
+  deals_total_value: number;
 }
 
 export interface CustomerWithRelations extends Customer {

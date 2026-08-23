@@ -59,15 +59,24 @@ export default function LeadsPage() {
       { accessorKey: "full_name", header: "Name", meta: { sortKey: "full_name" } },
       { id: "company", header: "Company", cell: ({ row }) => row.original.company?.name ?? "—" },
       {
+        accessorKey: "phone",
+        header: "Phone Number",
+        cell: ({ getValue }) => (getValue() as string) || "—",
+      },
+      {
         id: "assignee",
         header: "Assigned to",
         cell: ({ row }) => row.original.assignee?.full_name ?? "—",
       },
       {
-        accessorKey: "deal_value",
-        header: "Deal value",
-        meta: { sortKey: "deal_value" },
-        cell: ({ getValue }) => formatCurrency(Number(getValue())),
+        id: "deal_count",
+        header: "Deal Count",
+        cell: ({ row }) => row.original.deals_count ?? 0,
+      },
+      {
+        id: "deal_value_sum",
+        header: "Deal Value",
+        cell: ({ row }) => formatCurrency(Number(row.original.deals_total_value ?? 0)),
       },
       {
         accessorKey: "status",

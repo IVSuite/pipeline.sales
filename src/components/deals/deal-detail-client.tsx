@@ -21,7 +21,7 @@ export function DealDetailClient({ id }: { id: string }) {
   const [formOpen, setFormOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const { data: deal, isLoading } = useResourceOne<DealWithRelations>("deals", id);
-  const { update, remove } = useResourceMutations("deals");
+  const { update, remove } = useResourceMutations("deals", ["leads"]);
 
   if (isLoading || !deal) {
     return (

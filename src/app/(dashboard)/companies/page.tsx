@@ -48,6 +48,7 @@ export default function CompaniesPage() {
         cell: ({ row }) => row.original.owner?.full_name ?? "—",
       },
       { accessorKey: "phone", header: "Phone", cell: (c) => c.getValue() || "—" },
+      { accessorKey: "address", header: "Address", cell: (c) => c.getValue() || "—" },
       {
         id: "actions",
         header: "",
