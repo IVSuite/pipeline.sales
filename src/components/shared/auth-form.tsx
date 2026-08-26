@@ -1,7 +1,24 @@
 "use client";
 
+/* ---------------------------------------------------------------------------
+ * Sign-in only.
+ *
+ * Account creation moved to IV Suite on 2026-08-26 and is deliberately NOT
+ * available here. The old signup form let the visitor choose their own role
+ * (admin / manager / sales_rep) and passed it through
+ * `signUp({ options: { data: { role } } })`, which crm.handle_new_user() then
+ * trusted — a self-service route to a CRM admin account on a publicly reachable
+ * deployment. The database side of that hole is closed too (the trigger no
+ * longer reads a role out of user metadata).
+ *
+ * The Pipeline runs on its own origin, so it cannot share the desktop shell's
+ * stored session and still needs a sign-in box. Authorization does not depend on
+ * that: proxy.ts checks approved-status and `pipeline` app access on every
+ * request, and the crm.* tables carry RESTRICTIVE app_access_guard policies that
+ * enforce the same rule independently.
+ * ------------------------------------------------------------------------- */
+
 import { useState } from "react";
-import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -9,19 +26,12 @@ import { z } from "zod";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Input, Label, FieldError, Select } from "@/components/ui/input";
+import { Input, Label, FieldError } from "@/components/ui/input";
 import { BrandMark, BrandDivider } from "@/components/shared/brand-mark";
 
 const loginSchema = z.object({
   email: z.string().email("Enter a valid email"),
   password: z.string().min(1, "Password is required"),
-});
-
-const signupSchema = z.object({
-  full_name: z.string().min(1, "Full name is required"),
-  email: z.string().email("Enter a valid email"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
-  role: z.enum(["admin", "manager", "sales_rep"]),
 });
 
 export function LoginForm() {
@@ -48,7 +58,7 @@ export function LoginForm() {
   }
 
   return (
-    <AuthCard title="Welcome back" subtitle="Sign in to your Pipeline CRM account">
+    <AuthCard title="Welcome back" subtitle="Sign in with your IV Suite account">
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div>
           <Label htmlFor="email">Email</Label>
@@ -65,89 +75,7 @@ export function LoginForm() {
         </Button>
       </form>
       <p className="mt-4 text-center text-sm text-muted-foreground">
-        Don&apos;t have an account?{" "}
-        <Link href="/signup" className="font-medium text-primary hover:underline">
-          Sign up
-        </Link>
-      </p>
-      <div className="mt-6 rounded-lg bg-surface-muted p-3 text-xs text-muted-foreground">
-        <p className="mb-1 font-medium text-foreground">Demo accounts (password: Password123!)</p>
-        <p>admin@demo.com · manager@demo.com · rep1@demo.com · rep2@demo.com</p>
-      </div>
-    </AuthCard>
-  );
-}
-
-export function SignupForm() {
-  const router = useRouter();
-  const [loading, setLoading] = useState(false);
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<z.infer<typeof signupSchema>>({
-    resolver: zodResolver(signupSchema),
-    defaultValues: { role: "sales_rep" },
-  });
-
-  async function onSubmit(values: z.infer<typeof signupSchema>) {
-    setLoading(true);
-    const supabase = createClient();
-    const { error } = await supabase.auth.signUp({
-      email: values.email,
-      password: values.password,
-      options: {
-        data: { full_name: values.full_name, role: values.role },
-      },
-    });
-    setLoading(false);
-    if (error) {
-      toast.error(error.message);
-      return;
-    }
-    toast.success("Account created — signing you in…");
-    router.push("/dashboard");
-    router.refresh();
-  }
-
-  return (
-    <AuthCard title="Create your account" subtitle="Start managing your sales pipeline">
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        <div>
-          <Label htmlFor="full_name">Full name</Label>
-          <Input id="full_name" placeholder="Jane Doe" {...register("full_name")} />
-          <FieldError>{errors.full_name?.message}</FieldError>
-        </div>
-        <div>
-          <Label htmlFor="email">Email</Label>
-          <Input id="email" type="email" placeholder="you@company.com" {...register("email")} />
-          <FieldError>{errors.email?.message}</FieldError>
-        </div>
-        <div>
-          <Label htmlFor="password">Password</Label>
-          <Input id="password" type="password" placeholder="At least 8 characters" {...register("password")} />
-          <FieldError>{errors.password?.message}</FieldError>
-        </div>
-        <div>
-          <Label htmlFor="role">Role</Label>
-          <Select id="role" {...register("role")}>
-            <option value="sales_rep">Sales Representative</option>
-            <option value="manager">Manager</option>
-            <option value="admin">Admin</option>
-          </Select>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Demo-only: normally an admin would assign roles after signup.
-          </p>
-        </div>
-        <Button type="submit" className="w-full" loading={loading}>
-          Create account
-        </Button>
-      </form>
-      <p className="mt-4 text-center text-sm text-muted-foreground">
-        Already have an account?{" "}
-        <Link href="/login" className="font-medium text-primary hover:underline">
-          Sign in
-        </Link>
+        Accounts are created in IV Suite. Ask an administrator for access.
       </p>
     </AuthCard>
   );
