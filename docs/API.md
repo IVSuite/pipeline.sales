@@ -41,6 +41,23 @@ All endpoints live under `/api/*` as Next.js Route Handlers. They run server-sid
 `status`: `new` \| `contacted` \| `qualified` \| `unqualified` \| `converted`.
 `priority`: `low` \| `medium` \| `high` \| `urgent`.
 
+### Bulk import — `/api/leads/import` (also used by the IV Suite Marketing module)
+
+| Method | Path | Description |
+|---|---|---|
+| POST | `/api/leads/import/parse` | Multipart `file` (.xlsx/.csv, ≤ 15 MB). Returns `{ fileName, headers, rows, totalRows, truncated, suggestedMapping, fields, dedupeField, dedupeLabel }`. `fields` is the import schema (key, label, required, example, maxLength, format) and `dedupeField` the duplicate rule (`email`), so an external caller drives its mapping/preview from this app's definitions instead of a copy. Read-only. |
+| GET | `/api/leads/import/template` | The `.xlsx` template built from the same fields. |
+| POST | `/api/leads/import` | Body `{ rows: [{ full_name, email?, phone?, company?, linkedin? }], duplicateMode?: "skip" \| "update" }` (≤ 1000 rows). Validates, resolves `company` by name (find-or-create), dedupes against existing leads by email (skip by default), inserts as the caller. Returns `{ imported, updated, skipped, failed, errors }`. |
+
+These three routes are **callable cross-origin** so the Marketing module can
+reuse them rather than duplicate them. Cross-origin callers authenticate with
+`Authorization: Bearer <IV Suite access token>` — `requireUser()` verifies the
+token with Supabase Auth and runs every query as that user under the same RLS
+as a cookie session. Cookies are never accepted cross-origin (no
+`Access-Control-Allow-Credentials`). Allowed origins default to the IV Suite
+desktop shell, a Capacitor build and any localhost port; override with
+`PIPELINE_CORS_ORIGINS`. No other route sends CORS headers.
+
 ## Customers — `/api/customers`
 
 | Method | Path | Description |

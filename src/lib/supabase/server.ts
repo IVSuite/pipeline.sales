@@ -1,4 +1,5 @@
 import { createServerClient } from "@supabase/ssr";
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 import { DB_SCHEMA } from "./config";
 
@@ -30,6 +31,30 @@ export async function createClient() {
           }
         },
       },
+    }
+  );
+}
+
+/**
+ * Supabase client bound to a bearer access token instead of the cookie jar.
+ *
+ * Used when another IV Suite module (the Marketing app, which runs on a
+ * different origin and therefore cannot carry this app's cookies) calls one of
+ * our API routes with `Authorization: Bearer <IV Suite access token>`. The token
+ * is the same Supabase JWT a cookie session would hold, so every PostgREST call
+ * made through this client runs as that user under exactly the same RLS as a
+ * cookie session — nothing is elevated, and there is no service-role fallback.
+ *
+ * Sessions are never persisted or refreshed here: the caller owns the token.
+ */
+export function createBearerClient(accessToken: string) {
+  return createSupabaseClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      db: { schema: DB_SCHEMA },
+      global: { headers: { Authorization: `Bearer ${accessToken}` } },
+      auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
     }
   );
 }

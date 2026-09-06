@@ -1,7 +1,8 @@
 import "server-only";
 
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { headers } from "next/headers";
+import { createClient, createBearerClient } from "@/lib/supabase/server";
 import type { Profile, UserRole } from "@/types/database";
 
 export class ApiError extends Error {
@@ -12,12 +13,34 @@ export class ApiError extends Error {
   }
 }
 
-/** Resolves the current authenticated user's profile, or throws a 401 ApiError. */
-export async function requireUser(): Promise<{ profile: Profile; supabase: Awaited<ReturnType<typeof createClient>> }> {
-  const supabase = await createClient();
+type ServerSupabase = Awaited<ReturnType<typeof createClient>>;
+
+/**
+ * Reads an `Authorization: Bearer <token>` header, if the request carries one.
+ * Other IV Suite modules (Marketing) call a few of our API routes this way
+ * because they run on another origin and cannot present this app's cookies.
+ */
+async function bearerToken(): Promise<string | null> {
+  const value = (await headers()).get("authorization");
+  if (!value) return null;
+  const match = /^Bearer\s+(.+)$/i.exec(value.trim());
+  return match ? match[1].trim() : null;
+}
+
+/**
+ * Resolves the current authenticated user's profile, or throws a 401 ApiError.
+ *
+ * The session comes from this app's cookies, or — for cross-origin callers —
+ * from a bearer token. Both paths verify the JWT with Supabase Auth and then
+ * read `profiles` through RLS as that user, so a bearer caller gets exactly the
+ * rights of the same user signed in here, no more.
+ */
+export async function requireUser(): Promise<{ profile: Profile; supabase: ServerSupabase }> {
+  const token = await bearerToken();
+  const supabase = (token ? createBearerClient(token) : await createClient()) as ServerSupabase;
   const {
     data: { user },
-  } = await supabase.auth.getUser();
+  } = token ? await supabase.auth.getUser(token) : await supabase.auth.getUser();
 
   if (!user) {
     throw new ApiError("Not authenticated", 401);

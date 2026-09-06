@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireUser, errorResponse, ApiError } from "@/lib/rbac";
 import { runImport, type EntityImportSpec } from "@/lib/import/import-runner";
 import { LEAD_IMPORT_FIELDS } from "@/lib/import/customer-import";
+import { withCors, preflight } from "@/lib/cors";
 
 export const runtime = "nodejs";
 
@@ -36,7 +37,13 @@ const LEAD_SPEC: EntityImportSpec = {
   },
 };
 
-export async function POST(request: NextRequest) {
+// This route (with its /parse and /template siblings) is also the Marketing
+// module's importer: Marketing calls it cross-origin with a bearer token rather
+// than carrying a second copy of the import logic. Same validation, same
+// duplicate rules, same shared crm.leads rows.
+export const OPTIONS = preflight;
+
+export const POST = withCors(async (request: NextRequest) => {
   try {
     const { profile, supabase } = await requireUser();
     const body = await request.json();
@@ -52,4 +59,4 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     return errorResponse(error);
   }
-}
+});

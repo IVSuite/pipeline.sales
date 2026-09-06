@@ -6,6 +6,7 @@ import { Toaster } from "sonner";
 import { Suspense, useState } from "react";
 import { PwaRegister } from "@/components/shared/pwa-register";
 import { IvSuiteBridge } from "@/components/shared/iv-suite-bridge";
+import { RealtimeSync } from "@/components/shared/realtime-sync";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -24,6 +25,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
       <QueryClientProvider client={queryClient}>
         <PwaRegister />
+        {/* Leads, deals, companies and tasks are shared with the Marketing
+            module; refetch whenever the shared rows change anywhere. */}
+        <RealtimeSync />
         {/* Suspense because the bridge reads useSearchParams, and /login is
             statically rendered — without it the whole page opts out of static
             generation and gets slower, which is the opposite of the goal. */}
