@@ -97,6 +97,10 @@ export interface Deal {
   created_by: string | null;
   created_at: string;
   updated_at: string;
+  /** Set when the stage enters closed_won (database trigger). */
+  closed_won_at?: string | null;
+  /** The Quotation Builder quotation this deal was submitted from, if any. */
+  quotation_project_id?: string | null;
 }
 
 export interface Task {

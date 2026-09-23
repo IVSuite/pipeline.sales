@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useDraggable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import { useRouter } from "next/navigation";
-import { Building2, DollarSign, CalendarClock, Trash2 } from "lucide-react";
+import { Building2, DollarSign, CalendarClock, Trash2, FileText } from "lucide-react";
 import { ConfirmDialog } from "@/components/ui/modal";
 import { useResourceMutations } from "@/hooks/use-resource";
 import { formatCurrency, formatDate, initials } from "@/lib/utils";
@@ -46,6 +46,11 @@ export function DealCard({ deal }: { deal: DealWithRelations }) {
           <Trash2 className="h-3.5 w-3.5" />
         </button>
         <p className="pr-6 font-medium leading-snug">{deal.title}</p>
+        {deal.quotation_project_id && (
+          <p className="flex items-center gap-1.5 text-xs text-muted-foreground" title="Submitted from the Quotation Builder">
+            <FileText className="h-3 w-3" /> From quotation
+          </p>
+        )}
         {deal.company && (
           <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
             <Building2 className="h-3 w-3" /> {deal.company.name}

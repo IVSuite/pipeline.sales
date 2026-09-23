@@ -10,6 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ConfirmDialog } from "@/components/ui/modal";
 import { DealForm } from "./deal-form";
 import { EntityTimeline } from "@/components/shared/entity-timeline";
+import { DealLifecycle } from "./deal-lifecycle";
 import { useResourceOne, useResourceMutations } from "@/hooks/use-resource";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { DEAL_STAGES } from "@/types/database";
@@ -75,6 +76,8 @@ export function DealDetailClient({ id }: { id: string }) {
           <InfoRow icon={Pencil} label="Linked customer" value={deal.customer?.full_name} />
         </CardContent>
       </Card>
+
+      <DealLifecycle dealId={deal.id} stage={deal.stage} />
 
       <EntityTimeline entityType="deal" entityId={deal.id} />
 
